@@ -204,6 +204,25 @@ export default async function AnimeDetailPage({
                 dangerouslySetInnerHTML={{ __html: anime.description || "No description available." }}
               />
             </div>
+
+            {/* Trailer Section */}
+            {anime.trailer && anime.trailer.site === "youtube" && (
+              <div className="pt-4 space-y-4">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <ListVideo className="w-5 h-5 text-primary" />
+                  Trailer
+                </h3>
+                <div className="aspect-video w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${anime.trailer.id}?autoplay=0&showinfo=0&controls=1&rel=0`}
+                    title={`${title} Trailer`}
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

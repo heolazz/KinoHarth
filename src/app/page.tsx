@@ -10,6 +10,7 @@ import {
 } from "@/services/anilist";
 import { AiringScheduleTabs } from "@/components/anime/airing-schedule-tabs";
 import { AnimeCard } from "@/components/anime/anime-card";
+import { HeroSlider } from "@/components/anime/hero-slider";
 import Link from "next/link";
 
 async function getScheduleWindow(dayParam?: string) {
@@ -20,7 +21,7 @@ async function getScheduleWindow(dayParam?: string) {
   // Calculate the target date for the selected day within the current week
   const currentDayIso = currentDay === 0 ? 7 : currentDay;
   const selectedDayIso = selectedDay === 0 ? 7 : selectedDay;
-  
+
   const targetDate = new Date(now);
   targetDate.setDate(now.getDate() - currentDayIso + selectedDayIso);
   targetDate.setHours(0, 0, 0, 0);
@@ -54,76 +55,31 @@ export default async function Home({
         airingAtLesser: end,
       }),
     ]);
-  
+
   const trendingAnime: Anime[] = trendingData?.Page?.media || [];
   const popularAnime: Anime[] = popularData?.Page?.media || [];
   const recentlyUpdatedAnime: Anime[] = recentlyUpdatedData?.Page?.media || [];
   const schedule: AiringScheduleItem[] =
     scheduleData?.Page?.airingSchedules || [];
-  const heroAnime = trendingAnime[0];
   const featuredUpdate = recentlyUpdatedAnime[0];
   const updateFeed = recentlyUpdatedAnime.slice(1);
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      {heroAnime && (
-        <section className="relative w-full h-[90vh] flex items-center pt-16">
-          <div className="absolute inset-0 z-0">
-            <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000"
-              style={{ 
-                backgroundImage: `url("${heroAnime.bannerImage || heroAnime.coverImage.extraLarge}")`,
-                backgroundPosition: '50% 15%'
-              }}
-            />
-            {/* Cinematic Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1c1c1c] via-[#1c1c1c]/30 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#1c1c1c] via-[#1c1c1c]/40 to-transparent" />
-          </div>
-
-          <div className="container relative z-10 px-6 md:px-12 lg:px-20">
-            <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-left-8 duration-1000">
-              <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tight text-white leading-[1.1] drop-shadow-lg">
-                {heroAnime.title.english || heroAnime.title.romaji}
-              </h1>
-              
-              <p 
-                className="text-base md:text-lg text-white/90 max-w-[90%] leading-relaxed drop-shadow-md line-clamp-4 font-medium"
-                dangerouslySetInnerHTML={{ __html: heroAnime.description || "" }}
-              />
-              
-              <div className="flex items-center gap-4 pt-4">
-                <Button
-                  render={<Link href={`/watch/${heroAnime.id}/1`} />}
-                  className="rounded-full px-8 h-12 text-base font-bold bg-white text-black hover:bg-white/90 transition-all"
-                >
-                  <Play className="w-5 h-5 fill-current mr-2" />
-                  Play
-                </Button>
-                <Link 
-                  href={`/anime/${heroAnime.id}`} 
-                  className="inline-flex items-center justify-center rounded-full px-8 h-12 text-base font-bold bg-transparent text-white border border-white/40 hover:bg-white/10 transition-all"
-                >
-                  More Info
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      <HeroSlider animes={trendingAnime} />
 
       {/* Content Sections */}
-      <section className="container px-6 md:px-12 lg:px-20 -mt-16 relative z-20 pb-20 space-y-16">
+      <section className="container mx-auto px-4 md:px-6 -mt-4 pt-12 pb-20 space-y-16 relative z-20">
         {/* Trending Anime */}
         <div id="trending" className="space-y-6 scroll-mt-28">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold tracking-tight text-white/95">Trending Now</h2>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-6 snap-x hide-scrollbar">
-            {trendingAnime.map((anime) => (
+            {trendingAnime.map((anime, index) => (
               <div key={anime.id} className="min-w-[200px] md:min-w-[220px] lg:min-w-[240px] snap-start">
-                <AnimeCard anime={anime} />
+                <AnimeCard anime={anime} variant="trending" rank={index + 1} />
               </div>
             ))}
           </div>

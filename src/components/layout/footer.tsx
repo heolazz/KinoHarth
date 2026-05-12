@@ -8,9 +8,6 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4 group inline-flex">
-              <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                <Tv className="w-5 h-5 text-primary" />
-              </div>
               <span className="font-bold text-xl tracking-tight text-white">KinoHarth</span>
             </Link>
             <p className="text-white/60 text-sm max-w-sm mb-6 leading-relaxed">

@@ -69,9 +69,6 @@ export function Navbar() {
             >
               <SheetHeader className="border-b border-white/10">
                 <SheetTitle className="flex items-center gap-2 text-white">
-                  <span className="rounded-xl bg-white/10 p-2">
-                    <Tv className="h-5 w-5" />
-                  </span>
                   KinoHarth
                 </SheetTitle>
               </SheetHeader>
@@ -115,10 +112,7 @@ export function Navbar() {
           </Sheet>
 
           <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="rounded-xl bg-gradient-to-br from-white/20 to-white/5 p-2 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] group-hover:border-white/20 border border-white/10">
-              <Tv className="w-5 h-5 text-white" />
-            </span>
-            <span className="hidden text-xl font-bold tracking-tight text-white sm:inline transition-opacity group-hover:opacity-90">
+            <span className="text-xl font-bold tracking-tight text-white transition-opacity group-hover:opacity-90">
               KinoHarth
             </span>
           </Link>
