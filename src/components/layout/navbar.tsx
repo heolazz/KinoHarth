@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Menu, Search, Tv } from "lucide-react";
+import Image from "next/image";
+import { Bell, Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -44,8 +45,8 @@ export function Navbar() {
       className={cn(
         "fixed top-0 w-full z-50 transition-all duration-500",
         isScrolled
-          ? "bg-[#141414]/80 backdrop-blur-2xl border-b border-white/5 py-3 shadow-2xl"
-          : "bg-gradient-to-b from-black/60 to-transparent py-5"
+          ? "bg-[#141414]/80 backdrop-blur-2xl border-b border-white/5 py-2 shadow-2xl"
+          : "bg-gradient-to-b from-black/60 to-transparent py-3"
       )}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
@@ -69,7 +70,7 @@ export function Navbar() {
             >
               <SheetHeader className="border-b border-white/10">
                 <SheetTitle className="flex items-center gap-2 text-white">
-                  KinoHarth
+                  <Image src="/logo2.png" alt="KinoHarth Logo" width={200} height={60} className="w-auto h-20 object-contain" unoptimized />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2 px-4">
@@ -111,10 +112,15 @@ export function Navbar() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="text-xl font-bold tracking-tight text-white transition-opacity group-hover:opacity-90">
-              KinoHarth
-            </span>
+          <Link href="/" className="flex items-center group">
+            <Image
+              src="/logo2.png"
+              alt="KinoHarth Logo"
+              width={200}
+              height={120}
+              className="w-[120px] h-auto mt-2 object-contain transition-opacity duration-300 group-hover:opacity-90"
+              unoptimized
+            />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8">
@@ -191,7 +197,7 @@ export function Navbar() {
             </Button>
             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-[#141414]" />
           </div>
-          
+
           <Avatar className="w-9 h-9 border-2 border-white/10 ring-2 ring-transparent hover:ring-white/30 hover:border-white/30 transition-all duration-300 cursor-pointer ml-1">
             <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=AnimeBoy&backgroundColor=c0aede" />
             <AvatarFallback>UN</AvatarFallback>
