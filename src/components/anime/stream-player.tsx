@@ -245,100 +245,102 @@ export function StreamPlayer({
       {providerOptions.length > 1 && activeProvider && (
         <div className="relative z-50 flex flex-wrap items-center gap-2">
           <div className="relative flex h-11 items-center overflow-visible rounded-xl border border-white/5 bg-[#181818]/90 text-white shadow-md backdrop-blur-md">
-            <details open={openDropdown === "category"} className="group h-full">
-              <summary
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(openDropdown === "category" ? null : "category");
-                }}
-                className="flex h-full min-w-28 cursor-pointer list-none items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 [&::-webkit-details-marker]:hidden"
+            {/* Category Dropdown */}
+            <div className="group h-full">
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(openDropdown === "category" ? null : "category")}
+                className="flex h-full min-w-28 cursor-pointer items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 outline-none"
               >
                 <span className="flex h-5 w-5 items-center justify-center rounded bg-white/10 text-white/90">
                   {categoryIcon(activeCategory)}
                 </span>
                 <span>{categoryLabel(activeCategory)}</span>
                 <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-white/40" />
-              </summary>
+              </button>
 
-              <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
-                {categories.map((category) => {
-                  const isActive = category === activeCategory;
+              {openDropdown === "category" && (
+                <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
+                  {categories.map((category) => {
+                    const isActive = category === activeCategory;
 
-                  return (
-                    <a
-                      key={category}
-                      href={buildCategoryHref(basePath, source, category)}
-                      onClick={() => setOpenDropdown(null)}
-                      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
-                        isActive
-                          ? "bg-white/10 text-white"
-                          : "text-white/70 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      <span className="flex h-5 w-5 items-center justify-center rounded bg-white/10 text-white/90">
-                        {categoryIcon(category)}
-                      </span>
-                      <span>{categoryLabel(category)}</span>
-                      {isActive && <Check className="ml-auto h-3.5 w-3.5 text-white/90" />}
-                    </a>
-                  );
-                })}
-              </div>
-            </details>
+                    return (
+                      <a
+                        key={category}
+                        href={buildCategoryHref(basePath, source, category)}
+                        onClick={() => setOpenDropdown(null)}
+                        className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
+                          isActive
+                            ? "bg-white/10 text-white"
+                            : "text-white/70 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span className="flex h-5 w-5 items-center justify-center rounded bg-white/10 text-white/90">
+                          {categoryIcon(category)}
+                        </span>
+                        <span>{categoryLabel(category)}</span>
+                        {isActive && <Check className="ml-auto h-3.5 w-3.5 text-white/90" />}
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div className="h-6 w-px bg-white/10" />
 
-            <details open={openDropdown === "provider"} className="group h-full">
-              <summary
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(openDropdown === "provider" ? null : "provider");
-                }}
-                className="flex h-full min-w-32 cursor-pointer list-none items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 [&::-webkit-details-marker]:hidden"
+            {/* Provider Dropdown */}
+            <div className="group h-full">
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(openDropdown === "provider" ? null : "provider")}
+                className="flex h-full min-w-32 cursor-pointer items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 outline-none"
               >
                 <Zap className="h-4 w-4 fill-violet-400 text-violet-400" />
                 <span>{activeProvider.provider}</span>
                 <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-white/40" />
-              </summary>
+              </button>
 
-              <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
-                {providersForCategory.map((provider) => {
-                  const isActive =
-                    provider.provider === activeProvider.provider &&
-                    provider.category === activeProvider.category;
+              {openDropdown === "provider" && (
+                <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
+                  {providersForCategory.map((provider) => {
+                    const isActive =
+                      provider.provider === activeProvider.provider &&
+                      provider.category === activeProvider.category;
 
-                  return (
-                    <a
-                      key={`${provider.provider}-${provider.category}`}
-                      href={buildProviderHref(
-                        basePath,
-                        provider.provider,
-                        provider.category
-                      )}
-                      onClick={() => setOpenDropdown(null)}
-                      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
-                        isActive
-                          ? "bg-white/10 text-white"
-                          : "text-white/70 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      <span>{provider.provider}</span>
-                      {isActive && <Check className="h-3.5 w-3.5 text-white/90 ml-1" />}
-                      <span className="ml-auto flex gap-1">
-                        {provider.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold leading-none ${tagClassName(tag)}`}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </span>
-                    </a>
-                  );
-                })}
-              </div>
-            </details>
+                    return (
+                      <a
+                        key={`${provider.provider}-${provider.category}`}
+                        href={buildProviderHref(
+                          basePath,
+                          provider.provider,
+                          provider.category
+                        )}
+                        onClick={() => setOpenDropdown(null)}
+                        className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
+                          isActive
+                            ? "bg-white/10 text-white"
+                            : "text-white/70 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span>{provider.provider}</span>
+                        {isActive && <Check className="h-3.5 w-3.5 text-white/90 ml-1" />}
+                        <span className="ml-auto flex gap-1">
+                          {provider.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold leading-none ${tagClassName(tag)}`}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
