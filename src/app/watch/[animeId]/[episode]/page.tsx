@@ -404,7 +404,7 @@ export default async function WatchPage({
             basePath={watchPath(safeEpisode)}
           />
 
-          <div className="flex flex-col gap-4 py-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 pt-6 pb-2 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary" className="bg-white/10 text-white">

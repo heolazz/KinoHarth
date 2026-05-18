@@ -353,7 +353,7 @@ export function StreamPlayer({
       )}
 
       {streams.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2 py-2">
+        <div className="flex flex-wrap items-center gap-2 pt-2 pb-4">
           <span className="flex items-center gap-2 px-2 text-sm font-medium text-white/70">
             <Server className="h-4 w-4" />
             Source
