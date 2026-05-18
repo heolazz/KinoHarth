@@ -6,13 +6,11 @@ import {
   ChevronRight,
   Clock,
   ListVideo,
-  Play,
   Server,
-  Subtitles,
 } from "lucide-react";
 
 import { AnimeCard } from "@/components/anime/anime-card";
-import { HlsPlayer } from "@/components/anime/hls-player";
+import { StreamPlayer } from "@/components/anime/stream-player";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStreamSource } from "@/lib/stream-providers";
@@ -42,12 +40,16 @@ function buildEpisodes(totalEpisodes: number, currentEpisode: number) {
 
 export default async function WatchPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ animeId: string; episode: string }>;
+  searchParams: Promise<{ server?: string | string[] }>;
 }) {
   const { animeId, episode } = await params;
+  const { server } = await searchParams;
   const animeIdNumber = Number(animeId);
   const currentEpisode = Number(episode);
+  const selectedServer = Array.isArray(server) ? server[0] : server;
 
   if (!Number.isInteger(animeIdNumber) || !Number.isInteger(currentEpisode)) {
     notFound();
@@ -63,7 +65,12 @@ export default async function WatchPage({
   const title = anime.title.english || anime.title.romaji || anime.title.native;
   const totalEpisodes = anime.episodes || DEFAULT_EPISODE_COUNT;
   const safeEpisode = Math.min(Math.max(currentEpisode, 1), totalEpisodes);
-  const streamSource = await getStreamSource(animeIdNumber, safeEpisode);
+  const streamSource = await getStreamSource(
+    animeIdNumber,
+    safeEpisode,
+    undefined,
+    selectedServer
+  );
   const episodes = buildEpisodes(totalEpisodes, safeEpisode);
   const previousEpisode = safeEpisode > 1 ? safeEpisode - 1 : null;
   const nextEpisode = safeEpisode < totalEpisodes ? safeEpisode + 1 : null;
@@ -95,66 +102,13 @@ export default async function WatchPage({
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
-            <div className="relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10">
-              {streamSource.type === "embed" && streamSource.url ? (
-                <iframe
-                  src={streamSource.url}
-                  title={`${title} episode ${safeEpisode}`}
-                  className="h-full w-full"
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : streamSource.type === "hls" && streamSource.url ? (
-                <HlsPlayer
-                  source={streamSource}
-                  title={`${title} episode ${safeEpisode}`}
-                />
-              ) : (
-                <>
-                  <div
-                    className="absolute inset-0 bg-cover bg-center opacity-35 blur-sm"
-                    style={{
-                      backgroundImage: `url("${streamSource.poster || anime.bannerImage || anime.coverImage.extraLarge}")`,
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20" />
-
-                  <div className="relative z-10 flex h-full flex-col items-center justify-center gap-5 p-6 text-center">
-                    <button
-                      className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-black shadow-[0_0_50px_rgba(255,255,255,0.22)] transition-transform hover:scale-105"
-                      type="button"
-                      aria-label="Play dummy episode"
-                    >
-                      <Play className="ml-1 h-9 w-9 fill-current" />
-                    </button>
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/50">
-                        Episode {safeEpisode}
-                      </p>
-                      <h1 className="text-2xl font-bold md:text-4xl">{title}</h1>
-                      <p className="mx-auto max-w-2xl text-sm leading-relaxed text-white/65 md:text-base">
-                        {streamSource.notice ||
-                          "Streaming source will be connected later. For now this page locks the watch experience, episode navigation, and layout."}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-white/10 bg-black/60 px-4 py-3 backdrop-blur-md">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 text-xs text-white/60">
-                        <span className="h-1.5 w-24 rounded-full bg-white/80" />
-                        <span>00:00</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-white/60">
-                        <Subtitles className="h-4 w-4" />
-                        <span>Auto</span>
-                        <span>HD</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+            <StreamPlayer
+              key={`${anime.id}-${safeEpisode}-${streamSource.url || "empty"}`}
+              source={streamSource}
+              title={`${title} episode ${safeEpisode}`}
+              fallbackPoster={anime.bannerImage || anime.coverImage.extraLarge}
+              basePath={`/watch/${anime.id}/${safeEpisode}`}
+            />
 
             <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">
