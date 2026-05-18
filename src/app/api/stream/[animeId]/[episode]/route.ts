@@ -9,6 +9,8 @@ export async function GET(
   const animeIdNumber = Number(animeId);
   const episodeNumber = Number(episode);
   const provider = searchParams.get("provider") || undefined;
+  const episodeCategory = searchParams.get("episodeCategory") || undefined;
+  const episodeProvider = searchParams.get("episodeProvider") || undefined;
   const server = searchParams.get("server") || undefined;
 
   if (!Number.isInteger(animeIdNumber) || !Number.isInteger(episodeNumber)) {
@@ -22,7 +24,9 @@ export async function GET(
     animeIdNumber,
     episodeNumber,
     provider,
-    server
+    server,
+    episodeProvider,
+    episodeCategory
   );
 
   return Response.json(source);
