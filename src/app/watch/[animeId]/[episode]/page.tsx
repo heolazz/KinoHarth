@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  Calendar,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -452,92 +453,109 @@ export default async function WatchPage({
 
             {renderEpisodesList("block xl:hidden")}
 
-            <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d]">
-              <div className="border-b border-white/10 px-5 py-4">
-                <p
-                  className="line-clamp-3 text-sm leading-relaxed text-white/45 md:text-base"
-                  dangerouslySetInnerHTML={{
-                    __html: anime.description || "No description available.",
-                  }}
-                />
-              </div>
-
-              <div className="grid gap-5 p-5 lg:grid-cols-[190px_minmax(0,1fr)]">
-                <div className="space-y-3">
+            {/* Clean Detail Info Section */}
+            <div className="flex flex-col md:flex-row gap-6 pt-4">
+              {/* Left Column - Poster & Actions */}
+              <div className="w-44 md:w-52 flex-shrink-0 mx-auto md:mx-0">
+                <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative">
                   <img
                     src={anime.coverImage.extraLarge || anime.coverImage.large}
                     alt={title}
-                    className="aspect-[3/4] w-full rounded-xl object-cover"
+                    className="object-cover w-full h-full"
                     loading="lazy"
                   />
-                  {detailLink && (
-                    <Button
-                      render={<Link href={detailLink} target="_blank" />}
-                      variant="outline"
-                      className="h-10 w-full rounded-xl border-white/10 bg-white/[0.03] text-white hover:bg-white/10"
-                    >
-                      {detailLinkLabel}
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
+                </div>
+                <div className="mt-4">
+                  <Button
+                    render={<Link href={`/anime/${anime.id}`} />}
+                    variant="outline"
+                    className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold gap-2 h-11 rounded-xl transition-all"
+                  >
+                    Detail Info
+                  </Button>
+                </div>
+              </div>
+
+              {/* Right Column - Details */}
+              <div className="flex-1 space-y-5">
+                <div className="space-y-2 text-center md:text-left">
+                  <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white">
+                    {title}
+                  </h1>
+                  {anime.title.native && (
+                    <p className="text-sm text-white/45 font-medium">
+                      {anime.title.native}
+                    </p>
                   )}
                 </div>
 
-                <div className="min-w-0 space-y-5">
-                  <div className="space-y-2">
-                    <h1 className="text-3xl font-black uppercase tracking-normal text-white md:text-4xl">
-                      {title}
-                    </h1>
-                    {anime.title.romaji && anime.title.romaji !== title && (
-                      <p className="text-lg italic text-white/45">{anime.title.romaji}</p>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      {anime.genres.slice(0, 5).map((genre) => (
-                        <Badge
-                          key={genre}
-                          className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-sm font-semibold text-violet-300 hover:bg-violet-500/20"
-                        >
-                          {genre}
-                        </Badge>
-                      ))}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-semibold text-white/60">
+                  {anime.averageScore && (
+                    <div className="flex items-center gap-1 text-yellow-500">
+                      <Star className="w-4 h-4 fill-current" />
+                      <span>{anime.averageScore / 10}</span>
                     </div>
+                  )}
+                  <div className="flex items-center gap-1">
+                    <Tv className="w-4 h-4 text-violet-400" />
+                    <span>{anime.format}</span>
                   </div>
-
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                    <p
-                      className="line-clamp-4 text-sm leading-relaxed text-white/48"
-                      dangerouslySetInnerHTML={{
-                        __html: anime.description || "No synopsis available.",
-                      }}
-                    />
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4 text-violet-400" />
+                    <span>{anime.season} {anime.seasonYear}</span>
                   </div>
-
-                  <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-                    {infoItems.map((item) => (
-                      <div key={item.label} className="flex min-w-0 items-baseline gap-2">
-                        <span className="shrink-0 text-sm text-white/38">{item.label}:</span>
-                        <span className="truncate text-sm font-bold text-white">{item.value}</span>
-                      </div>
-                    ))}
-                    <div className="flex min-w-0 items-baseline gap-2">
-                      <span className="shrink-0 text-sm text-white/38">
-                        {officialLink ? "Official Site:" : "AniList:"}
-                      </span>
-                      {detailLink ? (
-                        <Link
-                          href={detailLink}
-                          target="_blank"
-                          className="truncate text-sm font-bold text-white hover:text-violet-400"
-                        >
-                          {new URL(detailLink).hostname.replace("www.", "")}
-                        </Link>
-                      ) : (
-                        <span className="text-sm font-bold text-white">Unknown</span>
-                      )}
+                  {anime.episodes && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4 text-violet-400" />
+                      <span>{anime.episodes} EPS</span>
                     </div>
+                  )}
+                  <div>
+                    <span className={anime.status === "RELEASING" ? "text-violet-400" : ""}>
+                      {anime.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                  {anime.genres.slice(0, 5).map((genre) => (
+                    <Badge
+                      key={genre}
+                      variant="secondary"
+                      className="rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-300 hover:bg-violet-500/20"
+                    >
+                      {genre}
+                    </Badge>
+                  ))}
+                </div>
+
+                <div className="space-y-2 text-center md:text-left">
+                  <h3 className="font-semibold text-base text-white">Synopsis</h3>
+                  <p 
+                    className="text-white/60 leading-relaxed text-sm"
+                    dangerouslySetInnerHTML={{ __html: anime.description || "No description available." }}
+                  />
+                </div>
+
+                <div className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2 pt-4 border-t border-white/5">
+                  {infoItems.map((item) => (
+                    <div key={item.label} className="flex min-w-0 items-baseline gap-2 text-xs">
+                      <span className="shrink-0 text-white/38">{item.label}:</span>
+                      <span className="truncate font-semibold text-white/80">{item.value}</span>
+                    </div>
+                  ))}
+                  <div className="flex min-w-0 items-baseline gap-2 text-xs">
+                    <span className="shrink-0 text-white/38">Detail Page:</span>
+                    <Link
+                      href={`/anime/${anime.id}`}
+                      className="truncate font-bold text-white hover:text-violet-400 transition-colors"
+                    >
+                      View Full Details
+                    </Link>
                   </div>
                 </div>
               </div>
-            </section>
+            </div>
 
             {seasonItems.length > 0 && (
               <section className="space-y-4">
@@ -562,40 +580,6 @@ export default async function WatchPage({
 
           <aside className="space-y-6">
             {renderEpisodesList("hidden xl:block")}
-
-            {relatedItems.length > 0 && (
-              <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <h2 className="flex items-center gap-2 text-lg font-semibold">
-                  <Tv className="h-5 w-5 text-violet-400" />
-                  Related
-                </h2>
-                <div className="grid gap-3">
-                  {relatedItems.map((edge: RelationEdge) =>
-                    edge.node ? (
-                      <CompactAnimeLink
-                        key={`${edge.relationType}-${edge.node.id}`}
-                        anime={edge.node}
-                        label={getRelationLabel(edge.relationType)}
-                      />
-                    ) : null
-                  )}
-                </div>
-              </div>
-            )}
-
-            {recommendations.length > 0 && (
-              <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <h2 className="flex items-center gap-2 text-lg font-semibold">
-                  <Star className="h-5 w-5 text-violet-400" />
-                  More to watch
-                </h2>
-                <div className="grid grid-cols-2 gap-4">
-                  {recommendations.slice(0, 4).map((recommendation) => (
-                    <AnimeCard key={recommendation.id} anime={recommendation} />
-                  ))}
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </section>
