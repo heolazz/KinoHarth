@@ -276,24 +276,35 @@ function getDurationLabel(duration: number | null | undefined) {
   return duration ? `${duration} mins` : null;
 }
 
-function getSeasonLabel(anime: Anime) {
-  const season = formatEnum(anime.season);
+function getStatusLabel(status: string | null | undefined) {
+  return formatEnum(status);
+}
 
-  if (!season && !anime.seasonYear) {
+function getStartDateLabel(startDate: Anime["startDate"]) {
+  if (!startDate || !startDate.year) {
     return null;
   }
 
-  return [season, anime.seasonYear].filter(Boolean).join(" ");
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  if (startDate.month && startDate.day) {
+    const monthStr = months[startDate.month - 1] || "";
+    return `${monthStr} ${startDate.day}, ${startDate.year}`;
+  } else if (startDate.month) {
+    const monthStr = months[startDate.month - 1] || "";
+    return `${monthStr} ${startDate.year}`;
+  }
+
+  return String(startDate.year);
 }
 
 function getDetailInfoGroups(anime: Anime) {
   return {
     studios: getStudioNames(anime),
   };
-}
-
-function getFormatLabel(format: string | null | undefined) {
-  return formatEnum(format);
 }
 
 function getSourceLabel(source: string | null | undefined) {
@@ -305,9 +316,9 @@ function DetailInfoPanel({ anime }: { anime: Anime }) {
 
   return (
     <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 md:flex md:flex-col md:space-y-4 px-1 max-w-sm mx-auto md:max-w-none">
-      <DetailInfoItem label="Format" value={getFormatLabel(anime.format)} />
+      <DetailInfoItem label="Status" value={getStatusLabel(anime.status)} />
       <DetailInfoItem label="Episode Duration" value={getDurationLabel(anime.duration)} />
-      <DetailInfoItem label="Season" value={getSeasonLabel(anime)} />
+      <DetailInfoItem label="Start Date" value={getStartDateLabel(anime.startDate)} />
       <DetailInfoList label="Studios" values={detailGroups.studios} />
       <DetailInfoItem label="Source" value={getSourceLabel(anime.source)} />
     </dl>
