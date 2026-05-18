@@ -373,11 +373,11 @@ export default async function AnimeDetailPage({
       </section>
 
       {/* Content Section */}
-      <section className="container px-4 relative z-10 -mt-32 md:-mt-48 pb-12">
+      <section className="container px-4 relative z-10 -mt-40 sm:-mt-44 md:-mt-48 pb-12">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Column - Poster & Actions */}
           <div className="w-full md:w-64 flex-shrink-0">
-            <div className="w-48 md:w-full aspect-[2/3] mx-auto rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative group">
+            <div className="w-56 sm:w-64 md:w-full aspect-[2/3] mx-auto rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative group">
               <img
                 src={anime.coverImage.extraLarge}
                 alt={title}
