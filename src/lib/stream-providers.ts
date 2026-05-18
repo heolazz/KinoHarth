@@ -3,6 +3,14 @@ import { HiAnime } from "aniwatch";
 
 export type StreamSourceType = "dummy" | "embed" | "hls";
 
+export type StreamOption = {
+  url: string;
+  type: Exclude<StreamSourceType, "dummy">;
+  server: string;
+  priority?: number;
+  referer?: string;
+};
+
 export type StreamSource = {
   provider: "dummy" | "anipy" | "aniwatch" | "animepahe" | "miruro";
   type: StreamSourceType;
@@ -21,6 +29,7 @@ export type StreamSource = {
     src: string;
     language?: string;
   }[];
+  streams?: StreamOption[];
   notice?: string;
 };
 
@@ -790,10 +799,17 @@ function getMiruroStreamUrl(stream: MiruroWatchStream) {
   return stream.url || stream.file || stream.src || null;
 }
 
-function pickMiruroStream(streams: MiruroWatchStream[]) {
-  const validStreams = streams.filter((stream) => getMiruroStreamUrl(stream));
+function getMiruroStreamType(
+  stream: MiruroWatchStream,
+  url: string
+): Exclude<StreamSourceType, "dummy"> {
+  return stream.type === "hls" || stream.isM3U8 || inferStreamType(url) === "hls"
+    ? "hls"
+    : "embed";
+}
 
-  return validStreams.sort((a, b) => {
+function sortMiruroStreams(streams: MiruroWatchStream[]) {
+  return [...streams].sort((a, b) => {
     const priorityA = a.priority ?? Number.NEGATIVE_INFINITY;
     const priorityB = b.priority ?? Number.NEGATIVE_INFINITY;
 
@@ -802,12 +818,56 @@ function pickMiruroStream(streams: MiruroWatchStream[]) {
     }
 
     return 0;
-  })[0] || null;
+  });
+}
+
+function getMiruroStreamOptions(streams: MiruroWatchStream[]): StreamOption[] {
+  const seenUrls = new Set<string>();
+
+  return sortMiruroStreams(streams)
+    .flatMap((stream) => {
+      const url = getMiruroStreamUrl(stream);
+
+      if (!url || seenUrls.has(url)) {
+        return [];
+      }
+
+      seenUrls.add(url);
+
+      return [{
+        url,
+        type: getMiruroStreamType(stream, url),
+        server: stream.server || stream.quality || "Unknown",
+        priority: stream.priority,
+        referer: stream.referer,
+      }];
+    });
+}
+
+function normalizeServerName(server: string | undefined) {
+  return server?.trim().toLowerCase() || "";
+}
+
+function pickMiruroStream(
+  streams: MiruroWatchStream[],
+  preferredServer?: string
+) {
+  const validStreams = sortMiruroStreams(
+    streams.filter((stream) => getMiruroStreamUrl(stream))
+  );
+  const selectedServer = normalizeServerName(preferredServer);
+
+  return selectedServer
+    ? validStreams.find(
+        (stream) => normalizeServerName(stream.server) === selectedServer
+      ) || validStreams[0] || null
+    : validStreams[0] || null;
 }
 
 async function getMiruroStream(
   animeId: number,
-  episode: number
+  episode: number,
+  streamServer?: string
 ): Promise<StreamSource> {
   const baseUrl = process.env.MIRURO_API_BASE_URL;
 
@@ -888,8 +948,9 @@ async function getMiruroStream(
     if (watchJson.data?.source) sourceList.unshift(watchJson.data.source);
     if (watchJson.source) sourceList.unshift(watchJson.source);
 
-    const stream = pickMiruroStream(sourceList);
+    const stream = pickMiruroStream(sourceList, streamServer);
     const url = stream ? getMiruroStreamUrl(stream) : null;
+    const streamOptions = getMiruroStreamOptions(sourceList);
 
     const subtitlesList = [
       ...(watchJson.data?.subtitles || []),
@@ -933,6 +994,7 @@ async function getMiruroStream(
           language: subtitle.language || subtitle.lang,
         }))
         .filter((subtitle) => Boolean(subtitle.src)),
+      streams: streamOptions,
       notice: url
         ? `Resolved through Miruro ${provider}/${category} using ${stream?.server || "unknown"} server.`
         : `Miruro found episode ${episode}, but returned no playable stream.`,
@@ -955,7 +1017,8 @@ async function getMiruroStream(
 export async function getStreamSource(
   animeId: number,
   episode: number,
-  providerOverride?: string
+  providerOverride?: string,
+  streamServer?: string
 ): Promise<StreamSource> {
   const provider = providerOverride || process.env.STREAM_PROVIDER || "dummy";
 
@@ -973,7 +1036,7 @@ export async function getStreamSource(
     }
 
     if (provider === "miruro") {
-      return getMiruroStream(animeId, episode);
+      return getMiruroStream(animeId, episode, streamServer);
     }
   } catch (error) {
     const fallback = await getDummyStream(animeId, episode);
