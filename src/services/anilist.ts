@@ -25,6 +25,31 @@ export interface Anime {
   seasonYear: number;
   type: string;
   format: string;
+  duration?: number | null;
+  countryOfOrigin?: string | null;
+  isAdult?: boolean | null;
+  siteUrl?: string | null;
+  startDate?: {
+    year?: number | null;
+    month?: number | null;
+    day?: number | null;
+  } | null;
+  endDate?: {
+    year?: number | null;
+    month?: number | null;
+    day?: number | null;
+  } | null;
+  studios?: {
+    nodes?: {
+      id: number;
+      name: string;
+    }[];
+  } | null;
+  externalLinks?: {
+    site: string;
+    url: string;
+    type?: string | null;
+  }[] | null;
   nextAiringEpisode?: {
     airingAt: number;
     timeUntilAiring: number;
@@ -102,18 +127,7 @@ export interface AnimeDetailResponse {
     relations?: {
       edges?: {
         relationType: string;
-        node: {
-          id: number;
-          title: {
-            romaji: string;
-            english: string | null;
-          };
-          type: string;
-          format: string;
-          coverImage: {
-            medium: string;
-          };
-        };
+        node: Anime;
       }[];
     };
   };
@@ -177,6 +191,31 @@ const ANIME_FRAGMENT = `
   seasonYear
   type
   format
+  duration
+  countryOfOrigin
+  isAdult
+  siteUrl
+  startDate {
+    year
+    month
+    day
+  }
+  endDate {
+    year
+    month
+    day
+  }
+  studios(isMain: true) {
+    nodes {
+      id
+      name
+    }
+  }
+  externalLinks {
+    site
+    url
+    type
+  }
   nextAiringEpisode {
     airingAt
     timeUntilAiring
@@ -330,16 +369,7 @@ export async function getAnimeDetail(id: number) {
           edges {
             relationType
             node {
-              id
-              title {
-                romaji
-                english
-              }
-              type
-              format
-              coverImage {
-                medium
-              }
+              ${ANIME_FRAGMENT}
             }
           }
         }
