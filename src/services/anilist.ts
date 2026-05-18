@@ -87,8 +87,16 @@ export interface AiringScheduleResponse {
   };
 }
 
+export interface AnimeStreamingEpisode {
+  title: string;
+  thumbnail: string | null;
+  url: string;
+  site: string;
+}
+
 export interface AnimeDetailResponse {
   Media?: Anime & {
+    streamingEpisodes?: AnimeStreamingEpisode[] | null;
     trailer?: {
       id: string;
       site: string;
@@ -211,16 +219,22 @@ const ANIME_FRAGMENT = `
       name
     }
   }
-  externalLinks {
-    site
-    url
-    type
-  }
-  nextAiringEpisode {
-    airingAt
-    timeUntilAiring
-    episode
-  }
+    externalLinks {
+      site
+      url
+      type
+    }
+    streamingEpisodes {
+      title
+      thumbnail
+      url
+      site
+    }
+    nextAiringEpisode {
+      airingAt
+      timeUntilAiring
+      episode
+    }
 `;
 
 export async function getTrendingAnime(page = 1, perPage = 20) {
