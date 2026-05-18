@@ -397,7 +397,7 @@ export default async function AnimeDetailPage({
           </div>
 
           {/* Right Column - Details */}
-          <div className="flex-1 space-y-6 md:pt-24">
+          <div className="flex-1 space-y-6">
             <div className="space-y-2 text-center md:text-left">
               <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
                 {title}
