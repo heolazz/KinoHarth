@@ -10,11 +10,17 @@ import {
 
 import { StreamPlayer } from "@/components/anime/stream-player";
 import { WatchSynopsis } from "@/components/anime/watch-synopsis";
+import { WatchEpisodeList } from "@/components/anime/watch-episode-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStreamSource } from "@/lib/stream-providers";
 import { buildWatchPath, parseEpisodeSegment } from "@/lib/watch-path";
-import { Anime, getAnimeDetail } from "@/services/anilist";
+import { Anime, AnimeStreamingEpisode, getAnimeDetail } from "@/services/anilist";
+import {
+  getMiruroAnimeEpisodeMetadata,
+  MiruroAnimeEpisodeMetadata,
+} from "@/services/miruro";
+import { getBestTmdbEpisodeThumbnail } from "@/services/tmdb";
 
 const DEFAULT_EPISODE_COUNT = 12;
 const EPISODE_GROUP_SIZE = 100;
@@ -22,6 +28,12 @@ const EPISODE_GROUP_SIZE = 100;
 type RelationEdge = {
   relationType: string;
   node?: Anime | null;
+};
+
+type WatchEpisodeItem = {
+  number: number;
+  title: string;
+  thumbnail: string;
 };
 
 export async function generateMetadata({
@@ -79,6 +91,10 @@ function getMaxEpisode(episodes: number[]) {
   return episodes.length > 0 ? Math.max(...episodes) : 0;
 }
 
+function getMaxMiruroEpisode(metadata: MiruroAnimeEpisodeMetadata | null) {
+  return getMaxEpisode(metadata?.episodes.map((episode) => episode.number) || []);
+}
+
 function buildEpisodeNumbers(totalEpisodes: number, availableEpisodes?: number[]) {
   if (availableEpisodes && availableEpisodes.length > 0) {
     return availableEpisodes;
@@ -119,14 +135,73 @@ function getActiveEpisodeGroup(episodeNumbers: number[], currentEpisode: number)
   );
 }
 
-function buildEpisodeItems(episodeNumbers: number[], currentEpisode: number) {
-  return episodeNumbers.map((episodeNumber) => ({
-    number: episodeNumber,
-    title:
-      episodeNumber === currentEpisode
-        ? "Now playing"
-        : `Episode ${episodeNumber}`,
-  }));
+function getAniListEpisodeNumber(
+  episode: AnimeStreamingEpisode,
+  fallbackNumber: number
+) {
+  const titleMatch = episode.title.match(/\b(?:episode|ep\.?|#)\s*(\d+)\b/i);
+
+  if (titleMatch) {
+    return Number(titleMatch[1]);
+  }
+
+  const urlMatch = episode.url.match(/(?:episode|ep)[-/_.]?(\d+)|[?&](?:ep|episode)=(\d+)/i);
+  const urlNumber = urlMatch ? Number(urlMatch[1] || urlMatch[2]) : Number.NaN;
+
+  return Number.isInteger(urlNumber) && urlNumber > 0 ? urlNumber : fallbackNumber;
+}
+
+function getFallbackThumbnail(anime: Anime) {
+  return anime.bannerImage || anime.coverImage.extraLarge || anime.coverImage.large || anime.coverImage.medium;
+}
+
+async function buildEpisodeItems({
+  anime,
+  episodeNumbers,
+  miruroMetadata,
+}: {
+  anime: Anime & { streamingEpisodes?: AnimeStreamingEpisode[] | null };
+  episodeNumbers: number[];
+  miruroMetadata: MiruroAnimeEpisodeMetadata | null;
+}) {
+  const fallbackThumbnail = getFallbackThumbnail(anime);
+  const miruroByNumber = new Map(
+    (miruroMetadata?.episodes || []).map((episode) => [episode.number, episode])
+  );
+  const aniListByNumber = new Map<number, AnimeStreamingEpisode>();
+
+  (anime.streamingEpisodes || []).forEach((episode, index) => {
+    const number = getAniListEpisodeNumber(episode, index + 1);
+
+    if (!aniListByNumber.has(number)) {
+      aniListByNumber.set(number, episode);
+    }
+  });
+
+  return Promise.all(
+    episodeNumbers.map(async (episodeNumber): Promise<WatchEpisodeItem> => {
+      const miruroEpisode = miruroByNumber.get(episodeNumber);
+      const aniListEpisode = aniListByNumber.get(episodeNumber);
+      const tmdbThumbnail =
+        miruroEpisode?.image || aniListEpisode?.thumbnail || !miruroMetadata?.tmdbId || !miruroMetadata?.tmdbSeason
+          ? null
+          : await getBestTmdbEpisodeThumbnail({
+              seriesId: miruroMetadata.tmdbId,
+              seasonNumber: miruroMetadata.tmdbSeason,
+              episodeNumber,
+            });
+
+      return {
+        number: episodeNumber,
+        title: miruroEpisode?.title || aniListEpisode?.title || `Episode ${episodeNumber}`,
+        thumbnail:
+          miruroEpisode?.image ||
+          aniListEpisode?.thumbnail ||
+          tmdbThumbnail ||
+          fallbackThumbnail,
+      };
+    })
+  );
 }
 
 function CompactAnimeLink({
@@ -203,6 +278,7 @@ export default async function WatchPage({
   }
 
   const title = anime.title.english || anime.title.romaji || anime.title.native;
+  const miruroMetadata = await getMiruroAnimeEpisodeMetadata(animeIdNumber);
   const provisionalEpisode = Math.max(currentEpisode, 1);
   const streamSource = await getStreamSource(
     animeIdNumber,
@@ -216,6 +292,7 @@ export default async function WatchPage({
     Math.max(
       anime.episodes || 0,
       getMaxEpisode(streamSource.availableEpisodes || []),
+      getMaxMiruroEpisode(miruroMetadata),
       DEFAULT_EPISODE_COUNT
     ),
     streamSource.availableEpisodes
@@ -226,14 +303,15 @@ export default async function WatchPage({
     : episodeNumbers[0] || 1;
   const activeEpisodeGroup = getActiveEpisodeGroup(episodeNumbers, safeEpisode);
   const episodeGroups = buildEpisodeGroups(episodeNumbers);
-  const episodes = buildEpisodeItems(
-    episodeNumbers.filter(
+  const episodes = await buildEpisodeItems({
+    anime,
+    miruroMetadata,
+    episodeNumbers: episodeNumbers.filter(
       (episodeNumber) =>
         episodeNumber >= activeEpisodeGroup.start &&
         episodeNumber <= activeEpisodeGroup.end
     ),
-    safeEpisode
-  );
+  });
   const currentEpisodeIndex = episodeNumbers.indexOf(safeEpisode);
   const previousEpisode =
     currentEpisodeIndex > 0 ? episodeNumbers[currentEpisodeIndex - 1] : null;
@@ -251,79 +329,25 @@ export default async function WatchPage({
     )
   );
   const watchPath = (episodeNumber: number) => buildWatchPath(anime, episodeNumber);
-
-
+  const episodeListItems = episodes.map((episode) => ({
+    ...episode,
+    href: watchPath(episode.number),
+  }));
+  const episodeListGroups = episodeGroups.map((group) => ({
+    ...group,
+    href: watchPath(group.start),
+    isActive:
+      group.start === activeEpisodeGroup.start &&
+      group.end === activeEpisodeGroup.end,
+  }));
   const renderEpisodesList = (className?: string) => (
-    <div className={`rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">
-          Episodes
-        </h2>
-        <span className="text-sm text-white/50">{totalEpisodes} total</span>
-      </div>
-
-      {episodeGroups.length > 1 && (
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-          {episodeGroups.map((group) => {
-            const isActive =
-              group.start === activeEpisodeGroup.start &&
-              group.end === activeEpisodeGroup.end;
-
-            return (
-              <Link
-                key={`${group.start}-${group.end}`}
-                href={watchPath(group.start)}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  isActive
-                    ? "border-white bg-white text-black"
-                    : "border-white/10 bg-white/[0.03] text-white/60 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {group.start}-{group.end}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="grid max-h-[440px] gap-2 overflow-y-auto pr-1">
-        {episodes.map((item) => {
-          const isActive = item.number === safeEpisode;
-
-          return (
-            <Link
-              key={item.number}
-              href={watchPath(item.number)}
-              className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-colors ${
-                isActive
-                  ? "border-white/30 bg-white text-black"
-                  : "border-white/10 bg-white/[0.03] text-white hover:bg-white/10"
-              }`}
-            >
-              <span
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                  isActive ? "bg-black text-white" : "bg-white/10 text-white"
-                }`}
-              >
-                {item.number}
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold">
-                  Episode {item.number}
-                </span>
-                <span
-                  className={`block truncate text-xs ${
-                    isActive ? "text-black/60" : "text-white/45"
-                  }`}
-                >
-                  {item.title}
-                </span>
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+    <WatchEpisodeList
+      className={className}
+      episodes={episodeListItems}
+      groups={episodeListGroups}
+      currentEpisode={safeEpisode}
+      totalEpisodes={totalEpisodes}
+    />
   );
 
   const renderSeasonsSection = (isSidebar: boolean) => {

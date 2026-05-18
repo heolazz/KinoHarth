@@ -20,12 +20,17 @@ export interface Anime {
   status: string;
   genres: string[];
   averageScore: number;
+  meanScore?: number | null;
   popularity: number;
+  favourites?: number | null;
   season: string;
   seasonYear: number;
   type: string;
   format: string;
   duration?: number | null;
+  source?: string | null;
+  hashtag?: string | null;
+  synonyms?: string[] | null;
   countryOfOrigin?: string | null;
   isAdult?: boolean | null;
   siteUrl?: string | null;
@@ -43,6 +48,7 @@ export interface Anime {
     nodes?: {
       id: number;
       name: string;
+      isAnimationStudio?: boolean | null;
     }[];
   } | null;
   externalLinks?: {
@@ -194,12 +200,17 @@ const ANIME_FRAGMENT = `
   status
   genres
   averageScore
+  meanScore
   popularity
+  favourites
   season
   seasonYear
   type
   format
   duration
+  source
+  hashtag
+  synonyms
   countryOfOrigin
   isAdult
   siteUrl
@@ -213,10 +224,11 @@ const ANIME_FRAGMENT = `
     month
     day
   }
-  studios(isMain: true) {
+  studios {
     nodes {
       id
       name
+      isAnimationStudio
     }
   }
     externalLinks {
