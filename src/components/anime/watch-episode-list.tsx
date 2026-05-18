@@ -52,7 +52,9 @@ export function WatchEpisodeList({
   );
 
   return (
-    <div className={`rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}>
+    <div
+      className={`flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}
+    >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Episodes</h2>
         <span className="text-sm text-white/50">{totalEpisodes} total</span>
@@ -87,7 +89,7 @@ export function WatchEpisodeList({
         </div>
       )}
 
-      <div className="grid max-h-[440px] gap-2 overflow-y-auto pr-1">
+      <div className="grid min-h-0 flex-1 gap-2 overflow-y-auto pr-1">
         {filteredEpisodes.length > 0 ? (
           filteredEpisodes.map((item) => {
             const isActive = item.number === currentEpisode;

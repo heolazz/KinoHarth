@@ -304,7 +304,7 @@ function DetailInfoPanel({ anime }: { anime: Anime }) {
   const detailGroups = getDetailInfoGroups(anime);
 
   return (
-    <dl className="mt-5 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <dl className="mt-6 space-y-4 px-1">
       <DetailInfoItem label="Format" value={getFormatLabel(anime.format)} />
       <DetailInfoItem label="Episode Duration" value={getDurationLabel(anime.duration)} />
       <DetailInfoItem label="Season" value={getSeasonLabel(anime)} />
