@@ -263,38 +263,7 @@ export default async function WatchPage({
       edge.relationType
     )
   );
-  const studioNames = anime.studios?.nodes?.map((studio) => studio.name).join(", ");
-  const officialLink =
-    anime.externalLinks?.find((link) => link.site.toLowerCase().includes("official")) ||
-    anime.externalLinks?.find((link) => link.type === "INFO") ||
-    null;
-  const detailLink = officialLink?.url || anime.siteUrl;
-  const detailLinkLabel = officialLink?.site || "AniList";
-  const infoItems = [
-    { label: "Format", value: formatEnum(anime.format) },
-    { label: "Status", value: formatEnum(anime.status) },
-    { label: "Episodes", value: `${totalEpisodes}` },
-    {
-      label: "Rating",
-      value: anime.averageScore ? `${anime.averageScore} / 100` : "Unknown",
-    },
-    {
-      label: "Duration",
-      value: anime.duration ? `${anime.duration} min` : "Unknown",
-    },
-    {
-      label: "Season",
-      value:
-        anime.season && anime.seasonYear
-          ? `${formatEnum(anime.season)} ${anime.seasonYear}`
-          : "Unknown",
-    },
-    { label: "Start Date", value: formatAniListDate(anime.startDate) },
-    { label: "End Date", value: formatAniListDate(anime.endDate) },
-    { label: "Country", value: anime.countryOfOrigin || "Unknown" },
-    { label: "Adult", value: anime.isAdult ? "Yes" : "No" },
-    { label: "Studios", value: studioNames || "Unknown" },
-  ];
+
 
   const renderEpisodesList = (className?: string) => (
     <div className={`rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}>
@@ -547,23 +516,6 @@ export default async function WatchPage({
 
                 <WatchSynopsis description={anime.description || "No description available."} />
 
-                <div className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2 pt-4 border-t border-white/5">
-                  {infoItems.map((item) => (
-                    <div key={item.label} className="flex min-w-0 items-baseline gap-2 text-xs">
-                      <span className="shrink-0 text-white/38">{item.label}:</span>
-                      <span className="truncate font-semibold text-white/80">{item.value}</span>
-                    </div>
-                  ))}
-                  <div className="flex min-w-0 items-baseline gap-2 text-xs">
-                    <span className="shrink-0 text-white/38">Detail Page:</span>
-                    <Link
-                      href={`/anime/${anime.id}`}
-                      className="truncate font-bold text-white hover:text-amber-500 transition-colors"
-                    >
-                      View Full Details
-                    </Link>
-                  </div>
-                </div>
               </div>
             </div>
 
