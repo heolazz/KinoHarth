@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Captions,
   Check,
@@ -125,6 +127,7 @@ export function StreamPlayer({
   fallbackPoster,
   basePath,
 }: StreamPlayerProps) {
+  const [openDropdown, setOpenDropdown] = useState<"category" | "provider" | null>(null);
   const current = buildCurrentOption(source);
   const streams = dedupeStreams([
     ...(source.streams || []),
@@ -232,11 +235,24 @@ export function StreamPlayer({
         )}
       </div>
 
+      {openDropdown !== null && (
+        <div
+          className="fixed inset-0 z-40 bg-transparent"
+          onClick={() => setOpenDropdown(null)}
+        />
+      )}
+
       {providerOptions.length > 1 && activeProvider && (
-        <div className="relative z-30 flex flex-wrap items-center gap-2">
-          <div className="flex h-11 items-center overflow-visible rounded-xl border border-white/5 bg-[#181818]/90 text-white shadow-md backdrop-blur-md">
-            <details className="group relative h-full">
-              <summary className="flex h-full min-w-28 cursor-pointer list-none items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 [&::-webkit-details-marker]:hidden">
+        <div className="relative z-50 flex flex-wrap items-center gap-2">
+          <div className="relative flex h-11 items-center overflow-visible rounded-xl border border-white/5 bg-[#181818]/90 text-white shadow-md backdrop-blur-md">
+            <details open={openDropdown === "category"} className="group h-full">
+              <summary
+                onClick={(e) => {
+                  e.preventDefault();
+                  setOpenDropdown(openDropdown === "category" ? null : "category");
+                }}
+                className="flex h-full min-w-28 cursor-pointer list-none items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 [&::-webkit-details-marker]:hidden"
+              >
                 <span className="flex h-5 w-5 items-center justify-center rounded bg-white/10 text-white/90">
                   {categoryIcon(activeCategory)}
                 </span>
@@ -244,7 +260,7 @@ export function StreamPlayer({
                 <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-white/40" />
               </summary>
 
-              <div className="absolute left-0 top-[calc(100%+6px)] z-50 w-52 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
                 {categories.map((category) => {
                   const isActive = category === activeCategory;
 
@@ -252,6 +268,7 @@ export function StreamPlayer({
                     <a
                       key={category}
                       href={buildCategoryHref(basePath, source, category)}
+                      onClick={() => setOpenDropdown(null)}
                       className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
                         isActive
                           ? "bg-white/10 text-white"
@@ -271,14 +288,20 @@ export function StreamPlayer({
 
             <div className="h-6 w-px bg-white/10" />
 
-            <details className="group relative h-full">
-              <summary className="flex h-full min-w-32 cursor-pointer list-none items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 [&::-webkit-details-marker]:hidden">
+            <details open={openDropdown === "provider"} className="group h-full">
+              <summary
+                onClick={(e) => {
+                  e.preventDefault();
+                  setOpenDropdown(openDropdown === "provider" ? null : "provider");
+                }}
+                className="flex h-full min-w-32 cursor-pointer list-none items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 [&::-webkit-details-marker]:hidden"
+              >
                 <Zap className="h-4 w-4 fill-violet-400 text-violet-400" />
                 <span>{activeProvider.provider}</span>
                 <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-white/40" />
               </summary>
 
-              <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-72 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] p-1 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-top-1 duration-150">
                 {providersForCategory.map((provider) => {
                   const isActive =
                     provider.provider === activeProvider.provider &&
@@ -292,6 +315,7 @@ export function StreamPlayer({
                         provider.provider,
                         provider.category
                       )}
+                      onClick={() => setOpenDropdown(null)}
                       className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
                         isActive
                           ? "bg-white/10 text-white"
