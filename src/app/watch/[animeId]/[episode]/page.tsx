@@ -11,6 +11,7 @@ import {
 import { StreamPlayer } from "@/components/anime/stream-player";
 import { WatchSynopsis } from "@/components/anime/watch-synopsis";
 import { WatchEpisodeList } from "@/components/anime/watch-episode-list";
+import { WatchPlayerEpisodeLayout } from "@/components/anime/watch-player-episode-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStreamSource } from "@/lib/stream-providers";
@@ -391,154 +392,150 @@ export default async function WatchPage({
           </div>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-6">
-            <StreamPlayer
-              key={`${anime.id}-${safeEpisode}-${streamSource.url || "empty"}`}
-              source={streamSource}
-              title={`${title} episode ${safeEpisode}`}
-              fallbackPoster={anime.bannerImage || anime.coverImage.extraLarge}
-              basePath={watchPath(safeEpisode)}
-            />
+        <WatchPlayerEpisodeLayout
+          episodeList={renderEpisodesList("h-full")}
+          seasonsSection={renderSeasonsSection(true)}
+        >
+          <StreamPlayer
+            key={`${anime.id}-${safeEpisode}-${streamSource.url || "empty"}`}
+            source={streamSource}
+            title={`${title} episode ${safeEpisode}`}
+            fallbackPoster={anime.bannerImage || anime.coverImage.extraLarge}
+            basePath={watchPath(safeEpisode)}
+          />
 
-            <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="bg-white/10 text-white">
-                    {anime.format}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/10 text-white">
-                    {anime.status}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/10 text-white capitalize">
-                    {streamSource.provider.toLowerCase() === "miruro" ? "Player" : streamSource.provider}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/10 text-white">
-                    {streamSource.type}
-                  </Badge>
-                  <span className="text-sm text-white/55">
-                    {totalEpisodes} episodes
-                  </span>
-                </div>
-                <h2 className="text-xl font-semibold">
-                  Episode {safeEpisode}: {title}
-                </h2>
+          <div className="flex flex-col gap-4 py-2 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="bg-white/10 text-white">
+                  {anime.format}
+                </Badge>
+                <Badge variant="secondary" className="bg-white/10 text-white">
+                  {anime.status}
+                </Badge>
+                <Badge variant="secondary" className="bg-white/10 text-white capitalize">
+                  {streamSource.provider.toLowerCase() === "miruro" ? "Player" : streamSource.provider}
+                </Badge>
+                <Badge variant="secondary" className="bg-white/10 text-white">
+                  {streamSource.type}
+                </Badge>
+                <span className="text-sm text-white/55">
+                  {totalEpisodes} episodes
+                </span>
               </div>
-
-              <div className="flex items-center gap-3">
-                <Button
-                  render={
-                    previousEpisode ? (
-                      <Link href={watchPath(previousEpisode)} />
-                    ) : undefined
-                  }
-                  variant="outline"
-                  className="h-10 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
-                  disabled={!previousEpisode}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Prev
-                </Button>
-                <Button
-                  render={
-                    nextEpisode ? (
-                      <Link href={watchPath(nextEpisode)} />
-                    ) : undefined
-                  }
-                  className="h-10 rounded-full bg-white px-5 text-black hover:bg-white/90"
-                  disabled={!nextEpisode}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              <h2 className="text-xl font-semibold">
+                Episode {safeEpisode}: {title}
+              </h2>
             </div>
 
-            {renderEpisodesList("block xl:hidden")}
-
-            {/* Clean Detail Info Section */}
-            <div className="flex flex-col md:flex-row gap-6 pt-4">
-              {/* Left Column - Poster & Actions */}
-              <div className="w-44 md:w-52 flex-shrink-0 mx-auto md:mx-0">
-                <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative">
-                  <img
-                    src={anime.coverImage.extraLarge || anime.coverImage.large}
-                    alt={title}
-                    className="object-cover w-full h-full"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="mt-4">
-                  <Button
-                    render={<Link href={`/anime/${anime.id}`} />}
-                    variant="outline"
-                    className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold gap-2 h-11 rounded-xl transition-all"
-                  >
-                    Detail Info
-                  </Button>
-                </div>
-              </div>
-
-              {/* Right Column - Details */}
-              <div className="flex-1 space-y-5">
-                <div className="space-y-2 text-center md:text-left">
-                  <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white">
-                    {title}
-                  </h1>
-                  {anime.title.native && (
-                    <p className="text-sm text-white/45 font-medium">
-                      {anime.title.native}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs font-semibold text-white/60">
-                  {anime.averageScore && (
-                    <>
-                      <span className="text-yellow-500">★ {anime.averageScore / 10}</span>
-                      <span>•</span>
-                    </>
-                  )}
-                  <span>{anime.format}</span>
-                  <span>•</span>
-                  <span>{anime.season} {anime.seasonYear}</span>
-                  {anime.episodes && (
-                    <>
-                      <span>•</span>
-                      <span>{anime.episodes} EPS</span>
-                    </>
-                  )}
-                  <span>•</span>
-                  <span className={anime.status === "RELEASING" ? "text-amber-500" : ""}>
-                    {anime.status}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                  {anime.genres.slice(0, 5).map((genre) => (
-                    <Badge
-                      key={genre}
-                      variant="secondary"
-                      className="rounded-full border border-white/5 bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 hover:bg-white/15"
-                    >
-                      {genre}
-                    </Badge>
-                  ))}
-                </div>
-
-                <WatchSynopsis description={anime.description || "No description available."} />
-
-              </div>
+            <div className="flex items-center gap-3">
+              <Button
+                render={
+                  previousEpisode ? (
+                    <Link href={watchPath(previousEpisode)} />
+                  ) : undefined
+                }
+                variant="outline"
+                className="h-10 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
+                disabled={!previousEpisode}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <Button
+                render={
+                  nextEpisode ? (
+                    <Link href={watchPath(nextEpisode)} />
+                  ) : undefined
+                }
+                className="h-10 rounded-full bg-white px-5 text-black hover:bg-white/90"
+                disabled={!nextEpisode}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-
-            {renderSeasonsSection(false)}
           </div>
 
-          <aside className="space-y-6">
-            {renderEpisodesList("hidden xl:block")}
-            {renderSeasonsSection(true)}
-          </aside>
-        </div>
+          {renderEpisodesList("block xl:hidden")}
+
+          {/* Clean Detail Info Section */}
+          <div className="flex flex-col md:flex-row gap-6 border-t border-white/5 pt-8 md:pt-12 mt-6">
+            {/* Left Column - Poster & Actions */}
+            <div className="w-44 md:w-52 flex-shrink-0 mx-auto md:mx-0">
+              <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative">
+                <img
+                  src={anime.coverImage.extraLarge || anime.coverImage.large}
+                  alt={title}
+                  className="object-cover w-full h-full"
+                  loading="lazy"
+                />
+              </div>
+              <div className="mt-4">
+                <Button
+                  render={<Link href={`/anime/${anime.id}`} />}
+                  variant="outline"
+                  className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold gap-2 h-11 rounded-xl transition-all"
+                >
+                  Detail Info
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Column - Details */}
+            <div className="flex-1 space-y-5">
+              <div className="space-y-2 text-center md:text-left">
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white">
+                  {title}
+                </h1>
+                {anime.title.native && (
+                  <p className="text-sm text-white/45 font-medium">
+                    {anime.title.native}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs font-semibold text-white/60">
+                {anime.averageScore && (
+                  <>
+                    <span className="text-yellow-500">★ {anime.averageScore / 10}</span>
+                    <span>•</span>
+                  </>
+                )}
+                <span>{anime.format}</span>
+                <span>•</span>
+                <span>{anime.season} {anime.seasonYear}</span>
+                {anime.episodes && (
+                  <>
+                    <span>•</span>
+                    <span>{anime.episodes} EPS</span>
+                  </>
+                )}
+                <span>•</span>
+                <span className={anime.status === "RELEASING" ? "text-amber-500" : ""}>
+                  {anime.status}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                {anime.genres.slice(0, 5).map((genre) => (
+                  <Badge
+                    key={genre}
+                    variant="secondary"
+                    className="rounded-full border border-white/5 bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 hover:bg-white/15"
+                  >
+                    {genre}
+                  </Badge>
+                ))}
+              </div>
+
+              <WatchSynopsis description={anime.description || "No description available."} />
+
+            </div>
+          </div>
+
+          {renderSeasonsSection(false)}
+        </WatchPlayerEpisodeLayout>
       </section>
     </div>
   );

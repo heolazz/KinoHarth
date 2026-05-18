@@ -53,7 +53,7 @@ export function WatchEpisodeList({
 
   return (
     <div
-      className={`flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}
+      className={`flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Episodes</h2>
