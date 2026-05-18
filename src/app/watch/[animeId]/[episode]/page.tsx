@@ -17,6 +17,7 @@ import { getStreamSource } from "@/lib/stream-providers";
 import { Anime, getAnimeDetail } from "@/services/anilist";
 
 const DEFAULT_EPISODE_COUNT = 12;
+const EPISODE_GROUP_SIZE = 100;
 
 type RecommendationEdge = {
   node?: {
@@ -24,18 +25,58 @@ type RecommendationEdge = {
   } | null;
 };
 
-function buildEpisodes(totalEpisodes: number, currentEpisode: number) {
-  return Array.from({ length: totalEpisodes }, (_, index) => {
-    const episodeNumber = index + 1;
+function getMaxEpisode(episodes: number[]) {
+  return episodes.length > 0 ? Math.max(...episodes) : 0;
+}
 
-    return {
-      number: episodeNumber,
-      title:
-        episodeNumber === currentEpisode
-          ? "Now playing"
-          : `Episode ${episodeNumber}`,
-    };
-  });
+function buildEpisodeNumbers(totalEpisodes: number, availableEpisodes?: number[]) {
+  if (availableEpisodes && availableEpisodes.length > 0) {
+    return availableEpisodes;
+  }
+
+  return Array.from({ length: totalEpisodes }, (_, index) => index + 1);
+}
+
+function buildEpisodeGroups(episodeNumbers: number[]) {
+  const maxEpisode = getMaxEpisode(episodeNumbers);
+  const groups = [];
+
+  for (let start = 1; start <= maxEpisode; start += EPISODE_GROUP_SIZE) {
+    const end = Math.min(start + EPISODE_GROUP_SIZE - 1, maxEpisode);
+    const hasEpisodes = episodeNumbers.some(
+      (episodeNumber) => episodeNumber >= start && episodeNumber <= end
+    );
+
+    if (hasEpisodes) {
+      groups.push({ start, end });
+    }
+  }
+
+  return groups;
+}
+
+function getActiveEpisodeGroup(episodeNumbers: number[], currentEpisode: number) {
+  const groups = buildEpisodeGroups(episodeNumbers);
+
+  return (
+    groups.find(
+      (group) => currentEpisode >= group.start && currentEpisode <= group.end
+    ) ||
+    groups[0] || {
+      start: 1,
+      end: Math.max(DEFAULT_EPISODE_COUNT, currentEpisode),
+    }
+  );
+}
+
+function buildEpisodeItems(episodeNumbers: number[], currentEpisode: number) {
+  return episodeNumbers.map((episodeNumber) => ({
+    number: episodeNumber,
+    title:
+      episodeNumber === currentEpisode
+        ? "Now playing"
+        : `Episode ${episodeNumber}`,
+  }));
 }
 
 export default async function WatchPage({
@@ -43,12 +84,22 @@ export default async function WatchPage({
   searchParams,
 }: {
   params: Promise<{ animeId: string; episode: string }>;
-  searchParams: Promise<{ server?: string | string[] }>;
+  searchParams: Promise<{
+    episodeCategory?: string | string[];
+    episodeProvider?: string | string[];
+    server?: string | string[];
+  }>;
 }) {
   const { animeId, episode } = await params;
-  const { server } = await searchParams;
+  const { episodeCategory, episodeProvider, server } = await searchParams;
   const animeIdNumber = Number(animeId);
   const currentEpisode = Number(episode);
+  const selectedEpisodeProvider = Array.isArray(episodeProvider)
+    ? episodeProvider[0]
+    : episodeProvider;
+  const selectedEpisodeCategory = Array.isArray(episodeCategory)
+    ? episodeCategory[0]
+    : episodeCategory;
   const selectedServer = Array.isArray(server) ? server[0] : server;
 
   if (!Number.isInteger(animeIdNumber) || !Number.isInteger(currentEpisode)) {
@@ -63,17 +114,44 @@ export default async function WatchPage({
   }
 
   const title = anime.title.english || anime.title.romaji || anime.title.native;
-  const totalEpisodes = anime.episodes || DEFAULT_EPISODE_COUNT;
-  const safeEpisode = Math.min(Math.max(currentEpisode, 1), totalEpisodes);
+  const provisionalEpisode = Math.max(currentEpisode, 1);
   const streamSource = await getStreamSource(
     animeIdNumber,
-    safeEpisode,
+    provisionalEpisode,
     undefined,
-    selectedServer
+    selectedServer,
+    selectedEpisodeProvider,
+    selectedEpisodeCategory
   );
-  const episodes = buildEpisodes(totalEpisodes, safeEpisode);
-  const previousEpisode = safeEpisode > 1 ? safeEpisode - 1 : null;
-  const nextEpisode = safeEpisode < totalEpisodes ? safeEpisode + 1 : null;
+  const episodeNumbers = buildEpisodeNumbers(
+    Math.max(
+      anime.episodes || 0,
+      getMaxEpisode(streamSource.availableEpisodes || []),
+      DEFAULT_EPISODE_COUNT
+    ),
+    streamSource.availableEpisodes
+  );
+  const totalEpisodes = getMaxEpisode(episodeNumbers) || DEFAULT_EPISODE_COUNT;
+  const safeEpisode = episodeNumbers.includes(provisionalEpisode)
+    ? provisionalEpisode
+    : episodeNumbers[0] || 1;
+  const activeEpisodeGroup = getActiveEpisodeGroup(episodeNumbers, safeEpisode);
+  const episodeGroups = buildEpisodeGroups(episodeNumbers);
+  const episodes = buildEpisodeItems(
+    episodeNumbers.filter(
+      (episodeNumber) =>
+        episodeNumber >= activeEpisodeGroup.start &&
+        episodeNumber <= activeEpisodeGroup.end
+    ),
+    safeEpisode
+  );
+  const currentEpisodeIndex = episodeNumbers.indexOf(safeEpisode);
+  const previousEpisode =
+    currentEpisodeIndex > 0 ? episodeNumbers[currentEpisodeIndex - 1] : null;
+  const nextEpisode =
+    currentEpisodeIndex >= 0 && currentEpisodeIndex < episodeNumbers.length - 1
+      ? episodeNumbers[currentEpisodeIndex + 1]
+      : null;
   const recommendations: Anime[] =
     anime.recommendations?.edges
       ?.map((edge: RecommendationEdge) => edge.node?.mediaRecommendation)
@@ -174,6 +252,30 @@ export default async function WatchPage({
                 </h2>
                 <span className="text-sm text-white/50">{totalEpisodes} total</span>
               </div>
+
+              {episodeGroups.length > 1 && (
+                <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+                  {episodeGroups.map((group) => {
+                    const isActive =
+                      group.start === activeEpisodeGroup.start &&
+                      group.end === activeEpisodeGroup.end;
+
+                    return (
+                      <Link
+                        key={`${group.start}-${group.end}`}
+                        href={`/watch/${anime.id}/${group.start}`}
+                        className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                          isActive
+                            ? "border-white bg-white text-black"
+                            : "border-white/10 bg-white/[0.03] text-white/60 hover:bg-white/10 hover:text-white"
+                        }`}
+                      >
+                        {group.start}-{group.end}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="grid max-h-[440px] gap-2 overflow-y-auto pr-1">
                 {episodes.map((item) => {
