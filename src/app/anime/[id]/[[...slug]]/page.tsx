@@ -304,7 +304,7 @@ function DetailInfoPanel({ anime }: { anime: Anime }) {
   const detailGroups = getDetailInfoGroups(anime);
 
   return (
-    <dl className="mt-6 space-y-4 px-1">
+    <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 md:flex md:flex-col md:space-y-4 px-1 max-w-sm mx-auto md:max-w-none">
       <DetailInfoItem label="Format" value={getFormatLabel(anime.format)} />
       <DetailInfoItem label="Episode Duration" value={getDurationLabel(anime.duration)} />
       <DetailInfoItem label="Season" value={getSeasonLabel(anime)} />
@@ -376,15 +376,15 @@ export default async function AnimeDetailPage({
       <section className="container px-4 relative z-10 -mt-32 md:-mt-48 pb-12">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Column - Poster & Actions */}
-          <div className="w-48 md:w-64 flex-shrink-0 mx-auto md:mx-0">
-            <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative group">
+          <div className="w-full md:w-64 flex-shrink-0">
+            <div className="w-48 md:w-full aspect-[2/3] mx-auto rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative group">
               <img
                 src={anime.coverImage.extraLarge}
                 alt={title}
                 className="object-cover w-full h-full"
               />
             </div>
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 max-w-sm mx-auto md:max-w-none space-y-3">
               <Button
                 render={<Link href={buildWatchPath(anime, 1)} />}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold gap-2 h-12 rounded-xl"
