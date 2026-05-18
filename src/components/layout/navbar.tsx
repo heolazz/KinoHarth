@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Menu, Search } from "lucide-react";
+import { Bell, Menu, Search, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,11 @@ const futureLinks = ["My List"];
 export function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileSearchOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,6 +54,37 @@ export function Navbar() {
           : "bg-gradient-to-b from-black/60 to-transparent py-3"
       )}
     >
+      {/* Mobile Search Overlay */}
+      {isMobileSearchOpen && (
+        <div className="absolute inset-0 z-20 flex items-center px-4 bg-[#141414] animate-in slide-in-from-top-2 fade-in duration-200 md:hidden">
+          <form action="/search" className="flex items-center w-full gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileSearchOpen(false)}
+              className="shrink-0 rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="relative flex-1">
+              <Input
+                name="q"
+                autoFocus
+                placeholder="Search anime..."
+                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-white/20 rounded-full pl-5 pr-10 h-10 text-sm placeholder:text-white/40 text-white shadow-inner"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-8">
           <Sheet>
@@ -183,7 +219,8 @@ export function Navbar() {
 
         <div className="flex items-center gap-4">
           <Button
-            render={<Link href="/search" />}
+            type="button"
+            onClick={() => setIsMobileSearchOpen(true)}
             variant="ghost"
             size="icon"
             className="md:hidden rounded-full w-9 h-9 bg-white/5 backdrop-blur-md hover:bg-white/15 text-white border border-white/5 transition-all"
