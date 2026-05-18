@@ -145,7 +145,7 @@ function CompactAnimeLink({
   return (
     <Link
       href={`/anime/${anime.id}`}
-      className="group grid grid-cols-[56px_minmax(0,1fr)] gap-3.5 rounded-xl border border-white/5 bg-white/[0.02] p-2 transition-all duration-300 hover:border-violet-500/20 hover:bg-violet-500/[0.03] backdrop-blur-md"
+      className="group grid grid-cols-[56px_minmax(0,1fr)] gap-3.5 rounded-xl border border-white/5 bg-white/[0.02] p-2 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.04] backdrop-blur-md"
     >
       <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
         <img
@@ -157,11 +157,11 @@ function CompactAnimeLink({
       </div>
       <span className="min-w-0 py-1">
         {label && (
-          <span className="mb-1.5 inline-block rounded bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-400">
+          <span className="mb-1.5 inline-block rounded bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500">
             {label}
           </span>
         )}
-        <span className="line-clamp-2 text-sm font-semibold leading-snug text-white transition-colors group-hover:text-violet-300">
+        <span className="line-clamp-2 text-sm font-semibold leading-snug text-white transition-colors group-hover:text-amber-500">
           {cardTitle}
         </span>
         <span className="mt-1.5 block text-xs text-white/45">
@@ -298,8 +298,7 @@ export default async function WatchPage({
   const renderEpisodesList = (className?: string) => (
     <div className={`rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-          <ListVideo className="h-5 w-5 text-violet-400" />
+        <h2 className="text-lg font-semibold text-white">
           Episodes
         </h2>
         <span className="text-sm text-white/50">{totalEpisodes} total</span>
@@ -406,14 +405,13 @@ export default async function WatchPage({
                   <Badge variant="secondary" className="bg-white/10 text-white">
                     {anime.status}
                   </Badge>
-                  <Badge variant="secondary" className="bg-white/10 text-white">
-                    {streamSource.provider}
+                  <Badge variant="secondary" className="bg-white/10 text-white capitalize">
+                    {streamSource.provider.toLowerCase() === "miruro" ? "Player" : streamSource.provider}
                   </Badge>
                   <Badge variant="secondary" className="bg-white/10 text-white">
                     {streamSource.type}
                   </Badge>
-                  <span className="flex items-center gap-1 text-sm text-white/55">
-                    <Clock className="h-4 w-4" />
+                  <span className="text-sm text-white/55">
                     {totalEpisodes} episodes
                   </span>
                 </div>
@@ -489,32 +487,26 @@ export default async function WatchPage({
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-semibold text-white/60">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs font-semibold text-white/60">
                   {anime.averageScore && (
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span>{anime.averageScore / 10}</span>
-                    </div>
+                    <>
+                      <span className="text-yellow-500">★ {anime.averageScore / 10}</span>
+                      <span>•</span>
+                    </>
                   )}
-                  <div className="flex items-center gap-1">
-                    <Tv className="w-4 h-4 text-violet-400" />
-                    <span>{anime.format}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4 text-violet-400" />
-                    <span>{anime.season} {anime.seasonYear}</span>
-                  </div>
+                  <span>{anime.format}</span>
+                  <span>•</span>
+                  <span>{anime.season} {anime.seasonYear}</span>
                   {anime.episodes && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4 text-violet-400" />
+                    <>
+                      <span>•</span>
                       <span>{anime.episodes} EPS</span>
-                    </div>
+                    </>
                   )}
-                  <div>
-                    <span className={anime.status === "RELEASING" ? "text-violet-400" : ""}>
-                      {anime.status}
-                    </span>
-                  </div>
+                  <span>•</span>
+                  <span className={anime.status === "RELEASING" ? "text-amber-500" : ""}>
+                    {anime.status}
+                  </span>
                 </div>
 
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
@@ -522,7 +514,7 @@ export default async function WatchPage({
                     <Badge
                       key={genre}
                       variant="secondary"
-                      className="rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-300 hover:bg-violet-500/20"
+                      className="rounded-full border border-white/5 bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 hover:bg-white/15"
                     >
                       {genre}
                     </Badge>
@@ -548,7 +540,7 @@ export default async function WatchPage({
                     <span className="shrink-0 text-white/38">Detail Page:</span>
                     <Link
                       href={`/anime/${anime.id}`}
-                      className="truncate font-bold text-white hover:text-violet-400 transition-colors"
+                      className="truncate font-bold text-white hover:text-amber-500 transition-colors"
                     >
                       View Full Details
                     </Link>
@@ -559,10 +551,7 @@ export default async function WatchPage({
 
             {seasonItems.length > 0 && (
               <section className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Film className="h-5 w-5 text-violet-400" />
-                  <h2 className="text-xl font-bold">Seasons, Movies, and Specials</h2>
-                </div>
+                <h2 className="text-xl font-bold text-white">Seasons, Movies, and Specials</h2>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {seasonItems.slice(0, 6).map((edge: RelationEdge) =>
                     edge.node ? (

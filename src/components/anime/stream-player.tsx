@@ -121,6 +121,14 @@ function tagClassName(tag: string) {
   return "border-orange-300/25 bg-orange-300/10 text-orange-200";
 }
 
+export function getProviderDisplayName(provider: string) {
+  const p = provider.toLowerCase();
+  if (p === "miruro") {
+    return "Player";
+  }
+  return provider.charAt(0).toUpperCase() + provider.slice(1);
+}
+
 export function StreamPlayer({
   source,
   title,
@@ -195,7 +203,6 @@ export function StreamPlayer({
               <span>00:00</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-white/60">
-              <Subtitles className="h-4 w-4" />
               <span>Auto</span>
               <span>HD</span>
             </div>
@@ -251,11 +258,8 @@ export function StreamPlayer({
               <button
                 type="button"
                 onClick={() => setOpenDropdown(openDropdown === "category" ? null : "category")}
-                className="flex h-full min-w-28 cursor-pointer items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 outline-none"
+                className="flex h-full min-w-24 cursor-pointer items-center gap-2 px-3 text-sm font-semibold transition-colors hover:text-white/80 outline-none"
               >
-                <span className="flex h-5 w-5 items-center justify-center rounded bg-white/10 text-white/90">
-                  {categoryIcon(activeCategory)}
-                </span>
                 <span>{categoryLabel(activeCategory)}</span>
                 <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-white/40" />
               </button>
@@ -270,15 +274,12 @@ export function StreamPlayer({
                         key={category}
                         href={buildCategoryHref(basePath, source, category)}
                         onClick={() => setOpenDropdown(null)}
-                        className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
+                        className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
                           isActive
                             ? "bg-white/10 text-white"
                             : "text-white/70 hover:bg-white/5 hover:text-white"
                         }`}
                       >
-                        <span className="flex h-5 w-5 items-center justify-center rounded bg-white/10 text-white/90">
-                          {categoryIcon(category)}
-                        </span>
                         <span>{categoryLabel(category)}</span>
                         {isActive && <Check className="ml-auto h-3.5 w-3.5 text-white/90" />}
                       </a>
@@ -295,10 +296,9 @@ export function StreamPlayer({
               <button
                 type="button"
                 onClick={() => setOpenDropdown(openDropdown === "provider" ? null : "provider")}
-                className="flex h-full min-w-32 cursor-pointer items-center gap-2.5 px-3.5 text-sm font-semibold transition-colors hover:text-white/80 outline-none"
+                className="flex h-full min-w-32 cursor-pointer items-center gap-2 px-3 text-sm font-semibold transition-colors hover:text-white/80 outline-none"
               >
-                <Zap className="h-4 w-4 fill-violet-400 text-violet-400" />
-                <span>{activeProvider.provider}</span>
+                <span>{getProviderDisplayName(activeProvider.provider)}</span>
                 <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-white/40" />
               </button>
 
@@ -324,7 +324,7 @@ export function StreamPlayer({
                             : "text-white/70 hover:bg-white/5 hover:text-white"
                         }`}
                       >
-                        <span>{provider.provider}</span>
+                        <span>{getProviderDisplayName(provider.provider)}</span>
                         {isActive && <Check className="h-3.5 w-3.5 text-white/90 ml-1" />}
                         <span className="ml-auto flex gap-1">
                           {provider.tags.map((tag) => (
