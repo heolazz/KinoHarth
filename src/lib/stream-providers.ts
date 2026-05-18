@@ -11,6 +11,12 @@ export type StreamOption = {
   referer?: string;
 };
 
+export type StreamProviderOption = {
+  provider: string;
+  category: string;
+  tags: string[];
+};
+
 export type StreamSource = {
   provider: "dummy" | "anipy" | "aniwatch" | "animepahe" | "miruro";
   type: StreamSourceType;
@@ -30,6 +36,10 @@ export type StreamSource = {
     language?: string;
   }[];
   streams?: StreamOption[];
+  availableEpisodes?: number[];
+  providerOptions?: StreamProviderOption[];
+  selectedEpisodeProvider?: string;
+  selectedEpisodeCategory?: string;
   notice?: string;
 };
 
@@ -691,6 +701,7 @@ type MiruroWatchStream = {
   server?: string;
   priority?: number;
   referer?: string;
+  isActive?: boolean;
 };
 
 type MiruroSubtitle = {
@@ -730,6 +741,12 @@ type MiruroWatchResponse = {
   headers?: Record<string, string>;
 };
 
+type MiruroEpisodeCandidate = {
+  item: MiruroEpisodeItem;
+  provider: string;
+  category: string;
+};
+
 async function fetchMiruroJson<T>(path: string, baseUrl: string) {
   const endpoint = new URL(path, baseUrl);
 
@@ -747,6 +764,29 @@ async function fetchMiruroJson<T>(path: string, baseUrl: string) {
   return (await response.json()) as T;
 }
 
+function getMiruroProviderRank(provider: string | undefined) {
+  const preferred = [
+    "ally",
+    "bee",
+    "kiwi",
+    "dune",
+    "animekai",
+    "hop",
+    "zoro",
+    "allanime",
+  ];
+  const index = preferred.indexOf(provider?.toLowerCase() || "");
+
+  return index === -1 ? preferred.length : index;
+}
+
+function getMiruroCategoryRank(category: string) {
+  const preferred = ["sub", "dub", "raw"];
+  const index = preferred.indexOf(category);
+
+  return index === -1 ? preferred.length : index;
+}
+
 function getMiruroEpisodes(json: MiruroEpisodesResponse): MiruroEpisodeItem[] {
   const episodes: MiruroEpisodeItem[] = [];
 
@@ -757,9 +797,11 @@ function getMiruroEpisodes(json: MiruroEpisodesResponse): MiruroEpisodeItem[] {
       if (providers[key]?.episodes) {
         const sub = providers[key].episodes?.sub || [];
         const dub = providers[key].episodes?.dub || [];
+        const raw = providers[key].episodes?.raw || [];
 
         episodes.push(...sub.map((item) => ({ ...item, provider: key, category: "sub" })));
         episodes.push(...dub.map((item) => ({ ...item, provider: key, category: "dub" })));
+        episodes.push(...raw.map((item) => ({ ...item, provider: key, category: "raw" })));
       }
     }
   }
@@ -767,32 +809,64 @@ function getMiruroEpisodes(json: MiruroEpisodesResponse): MiruroEpisodeItem[] {
   return episodes;
 }
 
-function pickMiruroEpisode(
+function getMiruroEpisodeCandidates(
   episodes: MiruroEpisodeItem[],
-  episodeNumber: number
+  episodeNumber: number,
+  preferredProvider?: string,
+  preferredCategory?: string
 ) {
-  const matchingEpisodes = episodes.filter((item) => {
-    const number = item.number ?? item.episode;
-    return Number(number) === episodeNumber;
-  });
+  const selectedProvider = preferredProvider?.toLowerCase();
+  const selectedCategory = preferredCategory?.toLowerCase();
 
-  const preferred = ["ally", "dune", "kiwi", "bee", "zoro", "allanime"];
+  return episodes
+    .filter((item) => {
+      const number = item.number ?? item.episode;
 
-  matchingEpisodes.sort((a, b) => {
-    if (a.category === "sub" && b.category !== "sub") return -1;
-    if (a.category !== "sub" && b.category === "sub") return 1;
+      return Number(number) === episodeNumber && Boolean(item.id || item.slug);
+    })
+    .map((item): MiruroEpisodeCandidate => ({
+      item,
+      provider: item.provider || "zoro",
+      category: item.category || "sub",
+    }))
+    .sort((a, b) => {
+      if (selectedProvider) {
+        const aSelected = a.provider.toLowerCase() === selectedProvider;
+        const bSelected = b.provider.toLowerCase() === selectedProvider;
 
-    const indexA = preferred.indexOf(a.provider || "");
-    const indexB = preferred.indexOf(b.provider || "");
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+      }
 
-    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-    if (indexA !== -1) return -1;
-    if (indexB !== -1) return 1;
+      if (selectedCategory) {
+        const aSelected = a.category.toLowerCase() === selectedCategory;
+        const bSelected = b.category.toLowerCase() === selectedCategory;
 
-    return 0;
-  });
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+      }
 
-  return matchingEpisodes[0];
+      if (a.category === "sub" && b.category !== "sub") return -1;
+      if (a.category !== "sub" && b.category === "sub") return 1;
+
+      const categoryRank = getMiruroCategoryRank(a.category) - getMiruroCategoryRank(b.category);
+
+      if (categoryRank !== 0) {
+        return categoryRank;
+      }
+
+      return getMiruroProviderRank(a.provider) - getMiruroProviderRank(b.provider);
+    });
+}
+
+function getMiruroAvailableEpisodes(episodes: MiruroEpisodeItem[]) {
+  return Array.from(
+    new Set(
+      episodes
+        .map((item) => Number(item.number ?? item.episode))
+        .filter((number) => Number.isInteger(number) && number > 0)
+    )
+  ).sort((a, b) => a - b);
 }
 
 function getMiruroStreamUrl(stream: MiruroWatchStream) {
@@ -808,6 +882,24 @@ function getMiruroStreamType(
     : "embed";
 }
 
+function getMiruroQualityRank(quality: string | undefined) {
+  const match = quality?.match(/\d+/);
+
+  return match ? Number(match[0]) : 0;
+}
+
+function getMiruroStreamLabel(stream: MiruroWatchStream) {
+  if (stream.server) {
+    return stream.server;
+  }
+
+  const url = getMiruroStreamUrl(stream);
+  const type = url ? getMiruroStreamType(stream, url) : "embed";
+  const typeLabel = type === "hls" ? "HLS" : "Embed";
+
+  return stream.quality ? `${stream.quality} ${typeLabel}` : typeLabel;
+}
+
 function sortMiruroStreams(streams: MiruroWatchStream[]) {
   return [...streams].sort((a, b) => {
     const priorityA = a.priority ?? Number.NEGATIVE_INFINITY;
@@ -815,6 +907,25 @@ function sortMiruroStreams(streams: MiruroWatchStream[]) {
 
     if (priorityA !== priorityB) {
       return priorityB - priorityA;
+    }
+
+    if (a.isActive !== b.isActive) {
+      return a.isActive ? -1 : 1;
+    }
+
+    const urlA = getMiruroStreamUrl(a);
+    const urlB = getMiruroStreamUrl(b);
+    const typeA = urlA ? getMiruroStreamType(a, urlA) : "hls";
+    const typeB = urlB ? getMiruroStreamType(b, urlB) : "hls";
+
+    if (typeA !== typeB) {
+      return typeA === "embed" ? -1 : 1;
+    }
+
+    const qualityRank = getMiruroQualityRank(b.quality) - getMiruroQualityRank(a.quality);
+
+    if (qualityRank !== 0) {
+      return qualityRank;
     }
 
     return 0;
@@ -837,7 +948,7 @@ function getMiruroStreamOptions(streams: MiruroWatchStream[]): StreamOption[] {
       return [{
         url,
         type: getMiruroStreamType(stream, url),
-        server: stream.server || stream.quality || "Unknown",
+        server: getMiruroStreamLabel(stream),
         priority: stream.priority,
         referer: stream.referer,
       }];
@@ -859,15 +970,76 @@ function pickMiruroStream(
 
   return selectedServer
     ? validStreams.find(
-        (stream) => normalizeServerName(stream.server) === selectedServer
-      ) || validStreams[0] || null
+        (stream) => normalizeServerName(getMiruroStreamLabel(stream)) === selectedServer
+      ) || null
     : validStreams[0] || null;
+}
+
+function getMiruroSourceList(watchJson: MiruroWatchResponse) {
+  const sourceList = [
+    ...(watchJson.data?.streams || []),
+    ...(watchJson.data?.sources || []),
+    ...(watchJson.data?.ssub?.streams || []),
+    ...(watchJson.data?.dub?.streams || []),
+    ...(watchJson.data?.raw?.streams || []),
+    ...(watchJson.sources || []),
+  ];
+
+  if (watchJson.data?.source) sourceList.unshift(watchJson.data.source);
+  if (watchJson.source) sourceList.unshift(watchJson.source);
+
+  return sourceList;
+}
+
+function getMiruroSubtitlesList(watchJson: MiruroWatchResponse) {
+  return [
+    ...(watchJson.data?.subtitles || []),
+    ...(watchJson.data?.ssub?.subtitles || []),
+    ...(watchJson.data?.dub?.subtitles || []),
+    ...(watchJson.data?.raw?.subtitles || []),
+    ...(watchJson.subtitles || []),
+  ];
+}
+
+function getMiruroProviderTags(
+  sourceList: MiruroWatchStream[],
+  subtitlesList: MiruroSubtitle[]
+) {
+  const tags: string[] = [];
+
+  if (
+    sourceList.some((stream) => {
+      const url = getMiruroStreamUrl(stream);
+
+      return url ? getMiruroStreamType(stream, url) === "embed" : false;
+    })
+  ) {
+    tags.push("EMBED");
+  }
+
+  tags.push(subtitlesList.length > 0 ? "S-SUB" : "H-SUB");
+
+  return tags;
+}
+
+function getMiruroEndpointPath(candidate: MiruroEpisodeCandidate, animeId: number) {
+  const watchPath = candidate.item.id || candidate.item.slug;
+
+  if (!watchPath) {
+    return null;
+  }
+
+  return watchPath.startsWith("watch/")
+    ? `/api/v2/miruro/${watchPath}`
+    : `/api/v2/miruro/watch/${candidate.provider}/${animeId}/${candidate.category}/${watchPath}`;
 }
 
 async function getMiruroStream(
   animeId: number,
   episode: number,
-  streamServer?: string
+  streamServer?: string,
+  episodeProvider?: string,
+  episodeCategory?: string
 ): Promise<StreamSource> {
   const baseUrl = process.env.MIRURO_API_BASE_URL;
 
@@ -891,9 +1063,15 @@ async function getMiruroStream(
     );
 
     const episodes = getMiruroEpisodes(episodesJson);
-    const resolvedEpisode = pickMiruroEpisode(episodes, episode);
+    const availableEpisodes = getMiruroAvailableEpisodes(episodes);
+    const candidates = getMiruroEpisodeCandidates(
+      episodes,
+      episode,
+      episodeProvider,
+      episodeCategory
+    );
 
-    if (!resolvedEpisode) {
+    if (candidates.length === 0) {
       return {
         provider: "miruro",
         type: "dummy",
@@ -903,101 +1081,118 @@ async function getMiruroStream(
         url: null,
         poster: getPoster(data),
         subtitles: [],
+        availableEpisodes,
         notice: `Miruro could not find episode ${episode} for AniList ID ${animeId}.`,
       };
     }
 
-    const provider = resolvedEpisode.provider || "zoro";
-    const category = resolvedEpisode.category || "sub";
-    const watchPath = resolvedEpisode.id || resolvedEpisode.slug;
+    const providerOptions: StreamProviderOption[] = [];
+    const watchCandidates: {
+      candidate: MiruroEpisodeCandidate;
+      sourceList: MiruroWatchStream[];
+      streamOptions: StreamOption[];
+      subtitlesList: MiruroSubtitle[];
+      watchJson: MiruroWatchResponse;
+    }[] = [];
 
-    if (!watchPath) {
-      return {
-        provider: "miruro",
-        type: "dummy",
-        animeId,
-        episode,
-        title,
-        url: null,
-        poster: getPoster(data),
-        subtitles: [],
-        notice: `Miruro found episode ${episode}, but no slug/id was returned.`,
-      };
+    for (const candidate of candidates) {
+      const endpointPath = getMiruroEndpointPath(candidate, animeId);
+
+      if (!endpointPath) {
+        continue;
+      }
+
+      try {
+        const watchJson = await fetchMiruroJson<MiruroWatchResponse>(
+          endpointPath,
+          baseUrl
+        );
+        const sourceList = getMiruroSourceList(watchJson);
+        const streamOptions = getMiruroStreamOptions(sourceList);
+
+        if (streamOptions.length === 0) {
+          continue;
+        }
+
+        const subtitlesList = getMiruroSubtitlesList(watchJson);
+
+        providerOptions.push({
+          provider: candidate.provider,
+          category: candidate.category,
+          tags: getMiruroProviderTags(sourceList, subtitlesList),
+        });
+        watchCandidates.push({
+          candidate,
+          sourceList,
+          streamOptions,
+          subtitlesList,
+          watchJson,
+        });
+      } catch {
+        continue;
+      }
     }
 
-    const endpointPath = watchPath.startsWith("watch/")
-      ? `/api/v2/miruro/${watchPath}`
-      : `/api/v2/miruro/watch/${provider}/${animeId}/${category}/${watchPath}`;
+    for (const preferredServer of streamServer ? [streamServer, undefined] : [undefined]) {
+      for (const watchCandidate of watchCandidates) {
+        const stream = pickMiruroStream(watchCandidate.sourceList, preferredServer);
+        const url = stream ? getMiruroStreamUrl(stream) : null;
 
-    const watchJson = await fetchMiruroJson<MiruroWatchResponse>(
-      endpointPath,
-      baseUrl
-    );
+        if (!stream || !url) {
+          continue;
+        }
 
-    const streams = watchJson.data?.streams || [];
+        const referer =
+          stream.referer ||
+          watchCandidate.watchJson.data?.ssub?.streams?.[0]?.referer ||
+          watchCandidate.watchJson.data?.sources?.[0]?.referer;
+        const headers: Record<string, string> =
+          watchCandidate.watchJson.data?.headers || watchCandidate.watchJson.headers || {};
 
-    const sourceList = [
-      ...streams,
-      ...(watchJson.data?.sources || []),
-      ...(watchJson.data?.ssub?.streams || []),
-      ...(watchJson.data?.dub?.streams || []),
-      ...(watchJson.data?.raw?.streams || []),
-      ...(watchJson.sources || []),
-    ];
+        if (referer) headers["Referer"] = referer;
 
-    if (watchJson.data?.source) sourceList.unshift(watchJson.data.source);
-    if (watchJson.source) sourceList.unshift(watchJson.source);
-
-    const stream = pickMiruroStream(sourceList, streamServer);
-    const url = stream ? getMiruroStreamUrl(stream) : null;
-    const streamOptions = getMiruroStreamOptions(sourceList);
-
-    const subtitlesList = [
-      ...(watchJson.data?.subtitles || []),
-      ...(watchJson.data?.ssub?.subtitles || []),
-      ...(watchJson.data?.dub?.subtitles || []),
-      ...(watchJson.data?.raw?.subtitles || []),
-      ...(watchJson.subtitles || []),
-    ];
-
-    const referer =
-      stream?.referer ||
-      watchJson.data?.ssub?.streams?.[0]?.referer ||
-      watchJson.data?.sources?.[0]?.referer;
-      
-    const headers: Record<string, string> =
-      watchJson.data?.headers || watchJson.headers || {};
-      
-    if (referer) headers["Referer"] = referer;
+        return {
+          provider: "miruro",
+          type: getMiruroStreamType(stream, url),
+          animeId,
+          episode,
+          title,
+          url,
+          poster: getPoster(data),
+          headers,
+          resolvedAnime: {
+            id: String(watchCandidate.candidate.item.id || watchCandidate.candidate.item.slug),
+            name: title,
+          },
+          subtitles: watchCandidate.subtitlesList
+            .map((subtitle) => ({
+              label: subtitle.label || subtitle.lang || subtitle.language || "Subtitle",
+              src: subtitle.file || subtitle.url || subtitle.src || "",
+              language: subtitle.language || subtitle.lang,
+            }))
+            .filter((subtitle) => Boolean(subtitle.src)),
+          streams: watchCandidate.streamOptions,
+          availableEpisodes,
+          providerOptions,
+          selectedEpisodeProvider: watchCandidate.candidate.provider,
+          selectedEpisodeCategory: watchCandidate.candidate.category,
+          notice: `Resolved through Miruro ${watchCandidate.candidate.provider}/${watchCandidate.candidate.category} using ${getMiruroStreamLabel(stream)} server.`,
+        };
+      }
+    }
 
     return {
       provider: "miruro",
-      type: stream?.type === "hls" || stream?.isM3U8 || inferStreamType(url) === "hls" 
-        ? "hls" 
-        : url 
-          ? "embed" 
-          : "dummy",
+      type: "dummy",
       animeId,
       episode,
       title,
-      url,
+      url: null,
       poster: getPoster(data),
-      headers,
-      resolvedAnime: {
-        id: String(watchPath),
-        name: title,
-      },
-      subtitles: subtitlesList
-        .map((subtitle) => ({
-          label: subtitle.label || subtitle.lang || subtitle.language || "Subtitle",
-          src: subtitle.file || subtitle.url || subtitle.src || "",
-          language: subtitle.language || subtitle.lang,
-        }))
-        .filter((subtitle) => Boolean(subtitle.src)),
-      streams: streamOptions,
-      notice: url
-        ? `Resolved through Miruro ${provider}/${category} using ${stream?.server || "unknown"} server.`
-        : `Miruro found episode ${episode}, but returned no playable stream.`,
+      subtitles: [],
+      availableEpisodes,
+      providerOptions,
+      notice: `Miruro found episode ${episode}, but all providers returned no playable stream.`,
     };
   } catch (error) {
     return {
@@ -1018,7 +1213,9 @@ export async function getStreamSource(
   animeId: number,
   episode: number,
   providerOverride?: string,
-  streamServer?: string
+  streamServer?: string,
+  episodeProvider?: string,
+  episodeCategory?: string
 ): Promise<StreamSource> {
   const provider = providerOverride || process.env.STREAM_PROVIDER || "dummy";
 
@@ -1036,7 +1233,13 @@ export async function getStreamSource(
     }
 
     if (provider === "miruro") {
-      return getMiruroStream(animeId, episode, streamServer);
+      return getMiruroStream(
+        animeId,
+        episode,
+        streamServer,
+        episodeProvider,
+        episodeCategory
+      );
     }
   } catch (error) {
     const fallback = await getDummyStream(animeId, episode);
