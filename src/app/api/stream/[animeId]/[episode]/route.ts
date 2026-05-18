@@ -9,6 +9,7 @@ export async function GET(
   const animeIdNumber = Number(animeId);
   const episodeNumber = Number(episode);
   const provider = searchParams.get("provider") || undefined;
+  const server = searchParams.get("server") || undefined;
 
   if (!Number.isInteger(animeIdNumber) || !Number.isInteger(episodeNumber)) {
     return Response.json(
@@ -17,7 +18,12 @@ export async function GET(
     );
   }
 
-  const source = await getStreamSource(animeIdNumber, episodeNumber, provider);
+  const source = await getStreamSource(
+    animeIdNumber,
+    episodeNumber,
+    provider,
+    server
+  );
 
   return Response.json(source);
 }
