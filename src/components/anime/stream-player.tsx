@@ -143,10 +143,10 @@ export function StreamPlayer({
               <a
                 key={stream.url}
                 href={`${basePath}?server=${encodeURIComponent(stream.server)}`}
-                className={`h-9 rounded-full border px-4 text-sm font-semibold transition-colors ${
+                className={`inline-flex h-9 items-center justify-center rounded-full border px-4 text-sm font-medium tracking-wide transition-all ${
                   isActive
-                    ? "border-white bg-white text-black"
-                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                    ? "border-white bg-white text-black shadow-lg shadow-white/5 scale-[1.03]"
+                    : "border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {stream.server}
