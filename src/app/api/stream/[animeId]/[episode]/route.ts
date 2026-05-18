@@ -2,9 +2,9 @@ import { getStreamSource } from "@/lib/stream-providers";
 
 export async function GET(
   request: Request,
-  context: RouteContext<"/api/stream/[animeId]/[episode]">
+  { params }: { params: Promise<{ animeId: string; episode: string }> }
 ) {
-  const { animeId, episode } = await context.params;
+  const { animeId, episode } = await params;
   const { searchParams } = new URL(request.url);
   const animeIdNumber = Number(animeId);
   const episodeNumber = Number(episode);

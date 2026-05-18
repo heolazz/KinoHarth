@@ -1,9 +1,10 @@
 import { Anime, getAnimeDetail } from "@/services/anilist";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Star, Play, Calendar, Tv, Clock, ListVideo, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AnimeCard } from "@/components/anime/anime-card";
+import { buildWatchPath, slugifyTitle, getAnimeTitle } from "@/lib/watch-path";
 import Link from "next/link";
 
 type CharacterEdge = {
@@ -58,14 +59,21 @@ function formatTimeUntilAiring(seconds: number) {
 export default async function AnimeDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; slug?: string[] }>;
 }) {
-  const { id } = await params;
+  const { id, slug } = await params;
   const data = await getAnimeDetail(parseInt(id));
   const anime = data?.Media;
 
   if (!anime) {
     notFound();
+  }
+
+  const expectedSlug = slugifyTitle(getAnimeTitle(anime));
+  const currentSlug = slug?.[0];
+
+  if (currentSlug !== expectedSlug) {
+    redirect(`/anime/${id}/${expectedSlug}`);
   }
 
   const title = anime.title.english || anime.title.romaji || anime.title.native;
@@ -108,7 +116,7 @@ export default async function AnimeDetailPage({
             </div>
             <div className="mt-6 space-y-3">
               <Button
-                render={<Link href={`/watch/${anime.id}/1`} />}
+                render={<Link href={buildWatchPath(anime, 1)} />}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold gap-2 h-12 rounded-xl"
               >
                 <Play className="w-5 h-5 fill-current" />

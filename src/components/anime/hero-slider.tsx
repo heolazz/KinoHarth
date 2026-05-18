@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Anime } from "@/services/anilist";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { buildWatchPath } from "@/lib/watch-path";
 
 interface HeroSliderProps {
   animes: Anime[];
@@ -157,7 +158,7 @@ export function HeroSlider({ animes }: HeroSliderProps) {
           {/* Action Buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px", paddingTop: "8px" }}>
             <Link
-              href={`/watch/${anime.id}/1`}
+              href={buildWatchPath(anime, 1)}
               style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "9999px", padding: "0 32px", height: "48px", fontSize: "16px", fontWeight: 700, background: "white", color: "black", textDecoration: "none", transition: "all 0.2s" }}
             >
               <Play style={{ width: "20px", height: "20px", fill: "currentColor", marginRight: "8px" }} />

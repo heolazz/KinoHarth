@@ -1,64 +1,59 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  Calendar,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  ExternalLink,
-  Film,
-  ListVideo,
   Server,
-  Star,
-  Tv,
 } from "lucide-react";
 
-import { AnimeCard } from "@/components/anime/anime-card";
 import { StreamPlayer } from "@/components/anime/stream-player";
 import { WatchSynopsis } from "@/components/anime/watch-synopsis";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStreamSource } from "@/lib/stream-providers";
+import { buildWatchPath, parseEpisodeSegment } from "@/lib/watch-path";
 import { Anime, getAnimeDetail } from "@/services/anilist";
 
 const DEFAULT_EPISODE_COUNT = 12;
 const EPISODE_GROUP_SIZE = 100;
-
-type RecommendationEdge = {
-  node?: {
-    mediaRecommendation?: Anime | null;
-  } | null;
-};
 
 type RelationEdge = {
   relationType: string;
   node?: Anime | null;
 };
 
-function formatAniListDate(
-  date:
-    | {
-        year?: number | null;
-        month?: number | null;
-        day?: number | null;
-      }
-    | null
-    | undefined
-) {
-  if (!date?.year) {
-    return "Unknown";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ animeId: string; episode: string }>;
+}): Promise<Metadata> {
+  const { animeId, episode } = await params;
+  const animeIdNumber = Number(animeId);
+  const episodeNumber = parseEpisodeSegment(episode);
+
+  if (!Number.isInteger(animeIdNumber) || !Number.isInteger(episodeNumber)) {
+    return {
+      title: "Watch Anime | KinoHarth",
+    };
   }
 
-  if (!date.month || !date.day) {
-    return String(date.year);
+  const data = await getAnimeDetail(animeIdNumber);
+  const anime = data?.Media;
+
+  if (!anime) {
+    return {
+      title: "Watch Anime | KinoHarth",
+    };
   }
 
-  return new Intl.DateTimeFormat("en", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date.year, date.month - 1, date.day));
+  const title = getDisplayTitle(anime);
+
+  return {
+    title: `${title} Episode ${episodeNumber} | KinoHarth`,
+    description: `Watch ${title} episode ${episodeNumber} on KinoHarth.`,
+  };
 }
 
 function formatEnum(value: string | null | undefined) {
@@ -187,7 +182,7 @@ export default async function WatchPage({
   const { animeId, episode } = await params;
   const { episodeCategory, episodeProvider, server } = await searchParams;
   const animeIdNumber = Number(animeId);
-  const currentEpisode = Number(episode);
+  const currentEpisode = parseEpisodeSegment(episode);
   const selectedEpisodeProvider = Array.isArray(episodeProvider)
     ? episodeProvider[0]
     : episodeProvider;
@@ -246,23 +241,16 @@ export default async function WatchPage({
     currentEpisodeIndex >= 0 && currentEpisodeIndex < episodeNumbers.length - 1
       ? episodeNumbers[currentEpisodeIndex + 1]
       : null;
-  const recommendations: Anime[] =
-    anime.recommendations?.edges
-      ?.map((edge: RecommendationEdge) => edge.node?.mediaRecommendation)
-      .filter((recommendation: Anime | null | undefined): recommendation is Anime =>
-        Boolean(recommendation)
-      )
-      .slice(0, 6) || [];
   const relations =
     anime.relations?.edges
       ?.filter((edge: RelationEdge) => Boolean(edge.node))
       .slice(0, 8) || [];
-  const relatedItems = relations.slice(0, 4);
   const seasonItems = relations.filter((edge: RelationEdge) =>
     ["PREQUEL", "SEQUEL", "SIDE_STORY", "PARENT", "SPIN_OFF", "OTHER"].includes(
       edge.relationType
     )
   );
+  const watchPath = (episodeNumber: number) => buildWatchPath(anime, episodeNumber);
 
 
   const renderEpisodesList = (className?: string) => (
@@ -284,7 +272,7 @@ export default async function WatchPage({
             return (
               <Link
                 key={`${group.start}-${group.end}`}
-                href={`/watch/${anime.id}/${group.start}`}
+                href={watchPath(group.start)}
                 className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   isActive
                     ? "border-white bg-white text-black"
@@ -305,7 +293,7 @@ export default async function WatchPage({
           return (
             <Link
               key={item.number}
-              href={`/watch/${anime.id}/${item.number}`}
+              href={watchPath(item.number)}
               className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-colors ${
                 isActive
                   ? "border-white/30 bg-white text-black"
@@ -386,7 +374,7 @@ export default async function WatchPage({
               source={streamSource}
               title={`${title} episode ${safeEpisode}`}
               fallbackPoster={anime.bannerImage || anime.coverImage.extraLarge}
-              basePath={`/watch/${anime.id}/${safeEpisode}`}
+              basePath={watchPath(safeEpisode)}
             />
 
             <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:flex-row md:items-center md:justify-between">
@@ -417,7 +405,7 @@ export default async function WatchPage({
                 <Button
                   render={
                     previousEpisode ? (
-                      <Link href={`/watch/${anime.id}/${previousEpisode}`} />
+                      <Link href={watchPath(previousEpisode)} />
                     ) : undefined
                   }
                   variant="outline"
@@ -430,7 +418,7 @@ export default async function WatchPage({
                 <Button
                   render={
                     nextEpisode ? (
-                      <Link href={`/watch/${anime.id}/${nextEpisode}`} />
+                      <Link href={watchPath(nextEpisode)} />
                     ) : undefined
                   }
                   className="h-10 rounded-full bg-white px-5 text-black hover:bg-white/90"
