@@ -228,6 +228,7 @@ export function StreamPlayer({
             className="h-full w-full"
             allow="autoplay; fullscreen; picture-in-picture"
             referrerPolicy="origin"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
             allowFullScreen
           />
         ) : (
