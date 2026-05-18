@@ -16,6 +16,7 @@ import {
 
 import { AnimeCard } from "@/components/anime/anime-card";
 import { StreamPlayer } from "@/components/anime/stream-player";
+import { WatchSynopsis } from "@/components/anime/watch-synopsis";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStreamSource } from "@/lib/stream-providers";
@@ -368,6 +369,29 @@ export default async function WatchPage({
     </div>
   );
 
+  const renderSeasonsSection = (isSidebar: boolean) => {
+    if (seasonItems.length === 0) return null;
+
+    return (
+      <section className={`space-y-4 ${isSidebar ? "hidden xl:block" : "block xl:hidden"}`}>
+        <h2 className={`${isSidebar ? "text-base" : "text-xl"} font-bold text-white`}>
+          Seasons, Movies, and Specials
+        </h2>
+        <div className={isSidebar ? "grid gap-3 grid-cols-1" : "grid gap-3 sm:grid-cols-2 lg:grid-cols-3"}>
+          {seasonItems.slice(0, 6).map((edge: RelationEdge) =>
+            edge.node ? (
+              <CompactAnimeLink
+                key={`${edge.relationType}-${edge.node.id}`}
+                anime={edge.node}
+                label={getRelationLabel(edge.relationType)}
+              />
+            ) : null
+          )}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#111111] pt-24 text-white">
       <section className="container px-4 pb-12 md:px-8 lg:px-12">
@@ -521,13 +545,7 @@ export default async function WatchPage({
                   ))}
                 </div>
 
-                <div className="space-y-2 text-center md:text-left">
-                  <h3 className="font-semibold text-base text-white">Synopsis</h3>
-                  <p 
-                    className="text-white/60 leading-relaxed text-sm"
-                    dangerouslySetInnerHTML={{ __html: anime.description || "No description available." }}
-                  />
-                </div>
+                <WatchSynopsis description={anime.description || "No description available."} />
 
                 <div className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2 pt-4 border-t border-white/5">
                   {infoItems.map((item) => (
@@ -549,26 +567,12 @@ export default async function WatchPage({
               </div>
             </div>
 
-            {seasonItems.length > 0 && (
-              <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white">Seasons, Movies, and Specials</h2>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {seasonItems.slice(0, 6).map((edge: RelationEdge) =>
-                    edge.node ? (
-                      <CompactAnimeLink
-                        key={`${edge.relationType}-${edge.node.id}`}
-                        anime={edge.node}
-                        label={getRelationLabel(edge.relationType)}
-                      />
-                    ) : null
-                  )}
-                </div>
-              </section>
-            )}
+            {renderSeasonsSection(false)}
           </div>
 
           <aside className="space-y-6">
             {renderEpisodesList("hidden xl:block")}
+            {renderSeasonsSection(true)}
           </aside>
         </div>
       </section>
