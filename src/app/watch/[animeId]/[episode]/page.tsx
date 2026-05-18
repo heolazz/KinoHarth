@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { AnimeCard } from "@/components/anime/anime-card";
+import { HlsPlayer } from "@/components/anime/hls-player";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStreamSource } from "@/lib/stream-providers";
@@ -88,7 +89,7 @@ export default async function WatchPage({
 
           <div className="flex items-center gap-2 text-sm text-white/60">
             <Server className="h-4 w-4" />
-            Dummy player preview
+            {streamSource.provider} player
           </div>
         </div>
 
@@ -104,22 +105,10 @@ export default async function WatchPage({
                   allowFullScreen
                 />
               ) : streamSource.type === "hls" && streamSource.url ? (
-                <video
-                  className="h-full w-full bg-black"
-                  controls
-                  poster={streamSource.poster || undefined}
-                  src={streamSource.url}
-                >
-                  {streamSource.subtitles.map((subtitle) => (
-                    <track
-                      key={`${subtitle.label}-${subtitle.src}`}
-                      kind="subtitles"
-                      label={subtitle.label}
-                      src={subtitle.src}
-                      srcLang={subtitle.language}
-                    />
-                  ))}
-                </video>
+                <HlsPlayer
+                  source={streamSource}
+                  title={`${title} episode ${safeEpisode}`}
+                />
               ) : (
                 <>
                   <div
