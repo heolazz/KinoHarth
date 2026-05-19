@@ -12,6 +12,7 @@ import { StreamPlayer } from "@/components/anime/stream-player";
 import { WatchSynopsis } from "@/components/anime/watch-synopsis";
 import { WatchEpisodeList } from "@/components/anime/watch-episode-list";
 import { WatchPlayerEpisodeLayout } from "@/components/anime/watch-player-episode-layout";
+import { HistorySaver } from "@/components/anime/history-saver";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStreamSource } from "@/lib/stream-providers";
@@ -376,6 +377,12 @@ export default async function WatchPage({
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[#111111] pt-24 text-white">
+      <HistorySaver
+        animeId={anime.id}
+        title={title}
+        poster={anime.coverImage.extraLarge || anime.coverImage.large || anime.coverImage.medium}
+        episodeNumber={safeEpisode}
+      />
       <section className="container mx-auto w-full px-4 pb-12 md:px-8 lg:px-12">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <Link

@@ -11,6 +11,7 @@ import {
 import { AiringScheduleTabs } from "@/components/anime/airing-schedule-tabs";
 import { AnimeCard } from "@/components/anime/anime-card";
 import { HeroSlider } from "@/components/anime/hero-slider";
+import { ContinueWatching } from "@/components/anime/continue-watching";
 import Link from "next/link";
 
 async function getScheduleWindow(dayParam?: string) {
@@ -71,6 +72,9 @@ export default async function Home({
 
       {/* Content Sections */}
       <section className="container mx-auto px-4 md:px-6 -mt-4 pt-12 pb-20 space-y-16 relative z-20">
+        {/* Continue Watching */}
+        <ContinueWatching />
+
         {/* Trending Anime */}
         <div id="trending" className="space-y-6 scroll-mt-28">
           <div className="flex items-center justify-between">
