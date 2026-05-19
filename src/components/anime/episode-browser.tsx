@@ -1,12 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Play, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-
-const EPISODES_PER_PAGE = 20;
 
 export type EpisodeBrowserItem = {
   number: number;
@@ -33,16 +31,29 @@ function filterEpisodes(episodes: EpisodeBrowserItem[], searchTerm: string) {
 export function EpisodeBrowser({ episodes }: { episodes: EpisodeBrowserItem[] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const episodesPerPage = isMobile ? 10 : 20;
+
   const filteredEpisodes = useMemo(
     () => filterEpisodes(episodes, searchTerm),
     [episodes, searchTerm]
   );
-  const totalPages = Math.max(1, Math.ceil(filteredEpisodes.length / EPISODES_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filteredEpisodes.length / episodesPerPage));
   const safePage = Math.min(currentPage, totalPages);
-  const firstEpisodeIndex = (safePage - 1) * EPISODES_PER_PAGE;
+  const firstEpisodeIndex = (safePage - 1) * episodesPerPage;
   const visibleEpisodes = filteredEpisodes.slice(
     firstEpisodeIndex,
-    firstEpisodeIndex + EPISODES_PER_PAGE
+    firstEpisodeIndex + episodesPerPage
   );
 
   function handleSearch(value: string) {
