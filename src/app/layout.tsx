@@ -14,6 +14,11 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "KinoHarth - Anime Streaming",
   description: "Modern anime streaming platform with cinematic UI.",
+  icons: {
+    icon: "/logo.ico",
+    shortcut: "/logo.ico",
+    apple: "/logo2.png",
+  },
 };
 
 export default function RootLayout({
