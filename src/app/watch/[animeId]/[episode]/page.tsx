@@ -375,8 +375,8 @@ export default async function WatchPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#111111] pt-24 text-white">
-      <section className="container mx-auto px-4 pb-12 md:px-8 lg:px-12">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#111111] pt-24 text-white">
+      <section className="container mx-auto w-full px-4 pb-12 md:px-8 lg:px-12">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <Link
             href={`/anime/${anime.id}`}

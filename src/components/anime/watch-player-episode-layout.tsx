@@ -47,8 +47,8 @@ export function WatchPlayerEpisodeLayout({
   }, [children]);
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
-      <div ref={playerColumnRef}>{children}</div>
+    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start w-full min-w-0">
+      <div ref={playerColumnRef} className="w-full min-w-0 overflow-hidden">{children}</div>
 
       <div className="hidden xl:flex xl:flex-col gap-6 w-[360px] flex-shrink-0">
         <aside

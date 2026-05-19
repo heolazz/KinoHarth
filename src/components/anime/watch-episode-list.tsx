@@ -53,7 +53,7 @@ export function WatchEpisodeList({
 
   return (
     <div
-      className={`flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}
+      className={`flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 ${className || ""}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Episodes</h2>
@@ -72,7 +72,7 @@ export function WatchEpisodeList({
       </div>
 
       {groups.length > 1 && (
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+        <div className="mb-4 flex w-full gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {groups.map((group) => (
             <Link
               key={`${group.start}-${group.end}`}
