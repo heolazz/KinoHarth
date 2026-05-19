@@ -378,8 +378,7 @@ export default async function AnimeDetailPage({
               backgroundImage: `url("${anime.bannerImage || anime.coverImage.extraLarge}")`,
             }}
           />
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm md:hidden" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         </div>
       </section>
 
