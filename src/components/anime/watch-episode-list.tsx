@@ -89,7 +89,7 @@ export function WatchEpisodeList({
         </div>
       )}
 
-      <div className="grid min-h-0 flex-1 gap-2 overflow-y-auto pr-1">
+      <div className="flex flex-col min-h-0 flex-1 gap-2 overflow-y-auto pr-1">
         {filteredEpisodes.length > 0 ? (
           filteredEpisodes.map((item) => {
             const isActive = item.number === currentEpisode;
