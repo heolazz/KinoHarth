@@ -46,6 +46,11 @@ type RecommendationEdge = {
   };
 };
 
+type RelationEdge = {
+  relationType: string;
+  node: Anime;
+};
+
 type EpisodePreview = {
   number: number;
   title: string;
@@ -348,6 +353,7 @@ export default async function AnimeDetailPage({
   const title = anime.title.english || anime.title.romaji || anime.title.native;
   const characterEdges = anime.characters?.edges || [];
   const recommendationEdges = anime.recommendations?.edges || [];
+  const relationEdges = (anime.relations?.edges || []) as RelationEdge[];
   const episodeLabel = anime.episodes
     ? `${anime.episodes} total episodes`
     : anime.status === "RELEASING"
@@ -547,6 +553,25 @@ export default async function AnimeDetailPage({
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Related Work */}
+        {relationEdges.filter((edge) => edge.node?.type === "ANIME").length > 0 && (
+          <div className="mt-16 space-y-6">
+            <h2 className="text-2xl font-bold tracking-tight">Related Work</h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-4 lg:grid-cols-6 md:gap-6 md:overflow-visible md:pb-0">
+              {relationEdges
+                .filter((edge) => edge.node?.type === "ANIME")
+                .map((edge: RelationEdge) => {
+                  const relAnime = edge.node;
+                  return (
+                    <div key={relAnime.id} className="w-[140px] shrink-0 md:w-auto md:shrink">
+                      <AnimeCard anime={relAnime} />
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
