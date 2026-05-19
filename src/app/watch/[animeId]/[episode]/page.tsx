@@ -355,11 +355,11 @@ export default async function WatchPage({
     if (seasonItems.length === 0) return null;
 
     return (
-      <section className={`space-y-4 ${isSidebar ? "hidden xl:block" : "block xl:hidden"}`}>
+      <section className={`space-y-4 ${isSidebar ? "hidden xl:block" : "block xl:hidden mt-8 md:mt-12"}`}>
         <h2 className={`${isSidebar ? "text-base" : "text-xl"} font-bold text-white`}>
           Seasons, Movies, and Specials
         </h2>
-        <div className={isSidebar ? "grid gap-3 grid-cols-1" : "grid gap-3 sm:grid-cols-2 lg:grid-cols-3"}>
+        <div className={isSidebar ? "grid gap-3 grid-cols-1" : "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"}>
           {seasonItems.slice(0, 6).map((edge: RelationEdge) =>
             edge.node ? (
               <CompactAnimeLink
@@ -376,7 +376,7 @@ export default async function WatchPage({
 
   return (
     <div className="min-h-screen bg-[#111111] pt-24 text-white">
-      <section className="container px-4 pb-12 md:px-8 lg:px-12">
+      <section className="container mx-auto px-4 pb-12 md:px-8 lg:px-12">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <Link
             href={`/anime/${anime.id}`}
@@ -404,7 +404,7 @@ export default async function WatchPage({
             basePath={watchPath(safeEpisode)}
           />
 
-          <div className="flex flex-col gap-4 pt-6 pb-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 pt-6 pb-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary" className="bg-white/10 text-white">
@@ -428,7 +428,7 @@ export default async function WatchPage({
               </h2>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <Button
                 render={
                   previousEpisode ? (
@@ -436,7 +436,7 @@ export default async function WatchPage({
                   ) : undefined
                 }
                 variant="outline"
-                className="h-10 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="h-10 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10 flex-1 sm:flex-none justify-center gap-2 px-5"
                 disabled={!previousEpisode}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -448,7 +448,7 @@ export default async function WatchPage({
                     <Link href={watchPath(nextEpisode)} />
                   ) : undefined
                 }
-                className="h-10 rounded-full bg-white px-5 text-black hover:bg-white/90"
+                className="h-10 rounded-full bg-white px-5 text-black hover:bg-white/90 flex-1 sm:flex-none justify-center gap-2"
                 disabled={!nextEpisode}
               >
                 Next
@@ -457,7 +457,7 @@ export default async function WatchPage({
             </div>
           </div>
 
-          {renderEpisodesList("block xl:hidden")}
+          {renderEpisodesList("h-[400px] sm:h-[480px] my-6 xl:hidden")}
 
           {/* Clean Detail Info Section */}
           <div className="flex flex-col md:flex-row gap-6 border-t border-white/5 pt-8 md:pt-12 mt-6">
