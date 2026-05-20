@@ -80,8 +80,8 @@ export default async function AnimeCatalogPage({
     status: activeStatus || undefined,
     format: activeFormat || undefined,
   });
-  const anime = data.Page?.media || [];
-  const pageInfo = data.Page?.pageInfo;
+  const anime = data?.Page?.media || [];
+  const pageInfo = data?.Page?.pageInfo;
   const total = pageInfo?.total || anime.length;
   const hasActiveFilters = Boolean(query || activeGenre || activeStatus || activeFormat);
 

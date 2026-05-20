@@ -126,7 +126,7 @@ type HianimeMapperResponse = {
 };
 
 function getTitle(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
-  const anime = data.Media;
+  const anime = data?.Media;
 
   if (!anime) {
     return "Unknown Anime";
@@ -136,7 +136,7 @@ function getTitle(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
 }
 
 function getCandidateTitles(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
-  const anime = data.Media;
+  const anime = data?.Media;
 
   if (!anime) {
     return [];
@@ -150,7 +150,7 @@ function getCandidateTitles(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
 }
 
 function getPoster(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
-  const anime = data.Media;
+  const anime = data?.Media;
 
   return anime?.bannerImage || anime?.coverImage.extraLarge || null;
 }
