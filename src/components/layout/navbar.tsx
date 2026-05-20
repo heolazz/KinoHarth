@@ -32,10 +32,8 @@ export function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-
-  useEffect(() => {
-    setIsMobileSearchOpen(false);
-  }, [pathname]);
+  const [mobileSearchPathname, setMobileSearchPathname] = useState(pathname);
+  const isMobileSearchVisible = isMobileSearchOpen && mobileSearchPathname === pathname;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +53,7 @@ export function Navbar() {
       )}
     >
       {/* Mobile Search Overlay */}
-      {isMobileSearchOpen && (
+      {isMobileSearchVisible && (
         <div className="absolute inset-0 z-20 flex items-center px-4 bg-[#141414] animate-in slide-in-from-top-2 fade-in duration-200 md:hidden">
           <form action="/search" className="flex items-center w-full gap-2">
             <Button
@@ -220,7 +218,10 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <Button
             type="button"
-            onClick={() => setIsMobileSearchOpen(true)}
+            onClick={() => {
+              setMobileSearchPathname(pathname);
+              setIsMobileSearchOpen(true);
+            }}
             variant="ghost"
             size="icon"
             className="md:hidden rounded-full w-9 h-9 bg-white/5 backdrop-blur-md hover:bg-white/15 text-white border border-white/5 transition-all"
