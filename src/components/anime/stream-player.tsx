@@ -251,7 +251,7 @@ export function StreamPlayer({
         />
       )}
 
-      {providerOptions.length > 1 && activeProvider && (
+      {providerOptions.length > 0 && activeProvider && (
         <div className="relative z-50 flex flex-wrap items-center gap-2">
           <div className="relative flex h-11 items-center overflow-visible rounded-xl border border-white/5 bg-[#181818]/90 text-white shadow-md backdrop-blur-md">
             {/* Category Dropdown */}
@@ -347,7 +347,7 @@ export function StreamPlayer({
         </div>
       )}
 
-      {streams.length > 1 && (
+      {streams.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 pt-2 pb-4">
           <span className="flex items-center gap-2 px-2 text-sm font-medium text-white/70">
             <Server className="h-4 w-4" />
