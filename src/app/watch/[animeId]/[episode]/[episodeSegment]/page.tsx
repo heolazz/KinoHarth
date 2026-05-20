@@ -1,8 +1,6 @@
 import WatchPage from "../page";
 import { parseEpisodeSegment } from "@/lib/watch-path";
 
-export { generateMetadata } from "../page";
-
 export default async function WatchSlugPage({
   params,
   searchParams,
