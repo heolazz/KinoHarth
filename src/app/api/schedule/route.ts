@@ -27,6 +27,6 @@ export async function POST(request: Request) {
   });
 
   return Response.json({
-    schedules: data.Page?.airingSchedules || [],
+    schedules: data?.Page?.airingSchedules || [],
   });
 }
