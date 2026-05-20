@@ -44,18 +44,22 @@ export default async function Home({
 }) {
   const resolvedSearchParams = await searchParams;
   const { start, end, selectedDay } = await getScheduleWindow(resolvedSearchParams.day);
-  const [trendingData, popularData, recentlyUpdatedData, scheduleData] =
-    await Promise.all([
-      getTrendingAnime(1, 10),
-      getPopularAnime(1, 12),
-      getRecentlyUpdatedAnime(1, 9),
-      getAiringSchedule({
-        page: 1,
-        perPage: 50,
-        airingAtGreater: start,
-        airingAtLesser: end,
-      }),
-    ]);
+  const results = await Promise.allSettled([
+    getTrendingAnime(1, 10),
+    getPopularAnime(1, 12),
+    getRecentlyUpdatedAnime(1, 9),
+    getAiringSchedule({
+      page: 1,
+      perPage: 50,
+      airingAtGreater: start,
+      airingAtLesser: end,
+    }),
+  ]);
+
+  const trendingData = results[0].status === "fulfilled" ? results[0].value : null;
+  const popularData = results[1].status === "fulfilled" ? results[1].value : null;
+  const recentlyUpdatedData = results[2].status === "fulfilled" ? results[2].value : null;
+  const scheduleData = results[3].status === "fulfilled" ? results[3].value : null;
 
   const trendingAnime: Anime[] = trendingData?.Page?.media || [];
   const popularAnime: Anime[] = popularData?.Page?.media || [];

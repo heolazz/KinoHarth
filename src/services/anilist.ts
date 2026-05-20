@@ -150,32 +150,42 @@ export interface AnimeDetailResponse {
 export async function fetchAniList<T>(
   query: string,
   variables: Record<string, unknown> = {}
-): Promise<T> {
+): Promise<T | null> {
   try {
     const response = await fetch(ANILIST_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "User-Agent": "KinoHarth/1.0",
       },
       body: JSON.stringify({
         query,
         variables,
       }),
-      next: { revalidate: 3600 } // Cache for 1 hour by default
     });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      console.error("AniList API HTTP Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText.slice(0, 500),
+      });
+      return null;
+    }
 
     const json = await response.json();
 
     if (json.errors) {
-      console.error("AniList API Errors:", json.errors);
-      throw new Error("Failed to fetch from AniList API");
+      console.error("AniList API GraphQL Errors:", json.errors);
+      return null;
     }
 
     return json.data;
   } catch (error) {
-    console.error("AniList API Error:", error);
-    throw error;
+    console.error("AniList API Network Error:", error);
+    return null;
   }
 }
 
