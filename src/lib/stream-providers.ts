@@ -1,5 +1,4 @@
 import { getAnimeDetail } from "@/services/anilist";
-import { HiAnime } from "aniwatch";
 
 export type StreamSourceType = "dummy" | "embed" | "hls";
 
@@ -123,6 +122,12 @@ type HianimeMapperEpisode = {
   number?: number;
 };
 
+type HianimeAnime = {
+  id?: string | null;
+  name?: string | null;
+  jname?: string | null;
+};
+
 type HianimeMapperResponse = {
   data?: {
     episodesList?: HianimeMapperEpisode[];
@@ -173,7 +178,7 @@ function normalizeTitle(title: string) {
 }
 
 function pickBestAniwatchResult(
-  results: HiAnime.Anime[],
+  results: HianimeAnime[],
   titles: string[]
 ) {
   const normalizedTitles = titles.map(normalizeTitle).filter(Boolean);
@@ -198,6 +203,12 @@ function pickBestAniwatchResult(
     }) ||
     validResults[0]
   );
+}
+
+async function createHiAnimeScraper() {
+  const { HiAnime } = await import("aniwatch");
+
+  return new HiAnime.Scraper();
 }
 
 function pickBestAnimepaheResult(
@@ -485,7 +496,7 @@ async function getMappedEpisodeId(animeId: number, episode: number) {
 }
 
 async function resolveAniwatchSources(episodeId: string) {
-  const hianime = new HiAnime.Scraper();
+  const hianime = await createHiAnimeScraper();
   const categories: AniwatchCategory[] = ["sub", "dub", "raw"];
   const servers: AniwatchServer[] = ["hd-1", "hd-2", "streamsb", "streamtape"];
   const errors: string[] = [];
@@ -534,7 +545,7 @@ async function getAniwatchStream(
   const data = await getAnimeDetail(animeId);
   const title = getTitle(data);
   const titles = getCandidateTitles(data);
-  const hianime = new HiAnime.Scraper();
+  const hianime = await createHiAnimeScraper();
 
   try {
     const mappedEpisodeId = await getMappedEpisodeId(animeId, episode);
