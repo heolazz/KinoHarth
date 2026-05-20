@@ -1,11 +1,11 @@
 export async function GET() {
   try {
-    const response = await fetch("https://graphql.anilist.co", {
+    const url = process.env.ANILIST_API_URL || "https://graphql.anilist.co";
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "User-Agent": "KinoHarth/1.0",
       },
       body: JSON.stringify({
         query: `
@@ -27,6 +27,7 @@ export async function GET() {
 
     return Response.json({
       ok: response.ok,
+      url,
       status: response.status,
       statusText: response.statusText,
       body: text.slice(0, 1000),

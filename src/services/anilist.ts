@@ -1,4 +1,5 @@
-export const ANILIST_API_URL = "https://graphql.anilist.co";
+export const ANILIST_API_URL =
+  process.env.ANILIST_API_URL || "https://graphql.anilist.co";
 
 export interface Anime {
   id: number;
@@ -157,7 +158,6 @@ export async function fetchAniList<T>(
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "User-Agent": "KinoHarth/1.0",
       },
       body: JSON.stringify({
         query,
@@ -167,11 +167,15 @@ export async function fetchAniList<T>(
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
-      console.error("AniList API HTTP Error:", {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText.slice(0, 500),
-      });
+      console.error(
+        [
+          "AniList API HTTP Error",
+          `url=${ANILIST_API_URL}`,
+          `status=${response.status}`,
+          `statusText=${response.statusText || "unknown"}`,
+          `body=${errorText.slice(0, 500) || "empty"}`,
+        ].join(" | ")
+      );
       return null;
     }
 
