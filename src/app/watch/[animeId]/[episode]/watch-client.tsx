@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import type { StreamSource } from "@/lib/stream-providers";
 import { buildWatchPath } from "@/lib/watch-path";
 import type { Anime, AnimeStreamingEpisode } from "@/services/anilist";
+import type { AnimeMetadataResponse } from "@/services/anime-metadata";
+import { getAnimeMetadataBrowser } from "@/services/anime-metadata";
 import { getAnimeDetailBrowser } from "@/services/anilist-browser";
 
 const DEFAULT_EPISODE_COUNT = 12;
@@ -47,6 +49,11 @@ type WatchState = {
 type StreamLoadState = {
   key: string;
   source: StreamSource;
+};
+
+type MetadataState = {
+  key: number;
+  metadata: AnimeMetadataResponse | null;
 };
 
 function formatEnum(value: string | null | undefined) {
@@ -77,16 +84,24 @@ function getAniListEpisodeNumber(episode: AnimeStreamingEpisode, fallbackNumber:
   return Number.isInteger(urlNumber) && urlNumber > 0 ? urlNumber : fallbackNumber;
 }
 
-function buildEpisodeNumbers(anime: WatchAnime, currentEpisode: number) {
+function buildEpisodeNumbers(
+  anime: WatchAnime,
+  currentEpisode: number,
+  metadata: AnimeMetadataResponse | null
+) {
   const streamingNumbers =
     anime.streamingEpisodes?.map((episode, index) =>
       getAniListEpisodeNumber(episode, index + 1)
     ) || [];
   const maxStreamingEpisode =
     streamingNumbers.length > 0 ? Math.max(...streamingNumbers) : 0;
+  const metadataNumbers = metadata?.episodes.map((episode) => episode.number) || [];
+  const maxMetadataEpisode =
+    metadataNumbers.length > 0 ? Math.max(...metadataNumbers) : 0;
   const totalEpisodes = Math.max(
     anime.episodes || 0,
     maxStreamingEpisode,
+    maxMetadataEpisode,
     currentEpisode,
     DEFAULT_EPISODE_COUNT
   );
@@ -118,11 +133,15 @@ function getActiveEpisodeGroup(episodeNumbers: number[], currentEpisode: number)
 
 function buildEpisodeItems(
   anime: WatchAnime,
+  metadata: AnimeMetadataResponse | null,
   episodeNumbers: number[],
   currentGroup: { start: number; end: number }
 ) {
   const fallbackThumbnail = getFallbackThumbnail(anime);
   const streamingByNumber = new Map<number, AnimeStreamingEpisode>();
+  const metadataByNumber = new Map(
+    (metadata?.episodes || []).map((episode) => [episode.number, episode])
+  );
 
   (anime.streamingEpisodes || []).forEach((episode, index) => {
     const number = getAniListEpisodeNumber(episode, index + 1);
@@ -136,11 +155,12 @@ function buildEpisodeItems(
     .filter((number) => number >= currentGroup.start && number <= currentGroup.end)
     .map((number) => {
       const streamingEpisode = streamingByNumber.get(number);
+      const metadataEpisode = metadataByNumber.get(number);
 
       return {
         number,
-        title: streamingEpisode?.title || `Episode ${number}`,
-        thumbnail: streamingEpisode?.thumbnail || fallbackThumbnail,
+        title: metadataEpisode?.title || streamingEpisode?.title || `Episode ${number}`,
+        thumbnail: metadataEpisode?.thumbnail || streamingEpisode?.thumbnail || fallbackThumbnail,
         href: buildWatchPath(anime, number),
       };
     });
@@ -172,6 +192,7 @@ export function WatchClient({
   const searchParams = useSearchParams();
   const [state, setState] = useState<WatchState | null>(null);
   const [streamState, setStreamState] = useState<StreamLoadState | null>(null);
+  const [metadataState, setMetadataState] = useState<MetadataState | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -203,16 +224,49 @@ export function WatchClient({
 
   const anime = state?.key === animeId ? state.anime : null;
   const error = state?.key === animeId ? state.error : null;
+  const episodeMetadata =
+    metadataState?.key === animeId ? metadataState.metadata : null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getAnimeMetadataBrowser(animeId)
+      .then((metadata) => {
+        if (!cancelled) {
+          setMetadataState({
+            key: animeId,
+            metadata,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMetadataState({
+            key: animeId,
+            metadata: null,
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [animeId]);
 
   const model = useMemo(() => {
     if (!anime) return null;
 
     const title = getDisplayTitle(anime);
     const safeEpisode = Math.max(episode, 1);
-    const episodeNumbers = buildEpisodeNumbers(anime, safeEpisode);
+    const episodeNumbers = buildEpisodeNumbers(anime, safeEpisode, episodeMetadata);
     const activeEpisodeGroup = getActiveEpisodeGroup(episodeNumbers, safeEpisode);
     const episodeGroups = buildEpisodeGroups(episodeNumbers);
-    const episodes = buildEpisodeItems(anime, episodeNumbers, activeEpisodeGroup);
+    const episodes = buildEpisodeItems(
+      anime,
+      episodeMetadata,
+      episodeNumbers,
+      activeEpisodeGroup
+    );
     const currentEpisodeIndex = episodeNumbers.indexOf(safeEpisode);
     const previousEpisode =
       currentEpisodeIndex > 0 ? episodeNumbers[currentEpisodeIndex - 1] : null;
@@ -240,7 +294,7 @@ export function WatchClient({
       nextEpisode,
       poster: getFallbackThumbnail(anime),
     };
-  }, [anime, episode]);
+  }, [anime, episode, episodeMetadata]);
   const queryKey = searchParams.toString();
   const streamKey =
     anime && model

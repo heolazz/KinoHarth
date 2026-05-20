@@ -6,11 +6,14 @@ import { Calendar, Clock, ListVideo, Play, Radio, Star, Tv } from "lucide-react"
 
 import { AnimeCard } from "@/components/anime/anime-card";
 import { AnimeError, AnimeLoading } from "@/components/anime/anime-loading";
+import { EpisodeBrowser } from "@/components/anime/episode-browser";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Anime } from "@/services/anilist";
-import { getAnimeDetailBrowser } from "@/services/anilist-browser";
 import { buildWatchPath } from "@/lib/watch-path";
+import type { Anime, AnimeStreamingEpisode } from "@/services/anilist";
+import type { AnimeMetadataResponse } from "@/services/anime-metadata";
+import { getAnimeMetadataBrowser } from "@/services/anime-metadata";
+import { getAnimeDetailBrowser } from "@/services/anilist-browser";
 
 type CharacterEdge = {
   role: string;
@@ -57,6 +60,71 @@ type AnimeDetailState = {
     | null;
   error: string | null;
 };
+
+type MetadataState = {
+  key: number;
+  metadata: AnimeMetadataResponse | null;
+};
+
+function getEpisodeNumber(episode: AnimeStreamingEpisode, fallbackNumber: number) {
+  const titleMatch = episode.title.match(/\b(?:episode|ep\.?|#)\s*(\d+)\b/i);
+
+  if (titleMatch) return Number(titleMatch[1]);
+
+  const urlMatch = episode.url.match(/(?:episode|ep)[-/_.]?(\d+)|[?&](?:ep|episode)=(\d+)/i);
+  const urlNumber = urlMatch ? Number(urlMatch[1] || urlMatch[2]) : Number.NaN;
+
+  return Number.isInteger(urlNumber) && urlNumber > 0 ? urlNumber : fallbackNumber;
+}
+
+function getFallbackThumbnail(anime: Anime) {
+  return anime.bannerImage || anime.coverImage.extraLarge || anime.coverImage.large || anime.coverImage.medium;
+}
+
+function buildEpisodeItems(
+  anime: Anime & { streamingEpisodes?: AnimeStreamingEpisode[] | null },
+  metadata: AnimeMetadataResponse | null
+) {
+  const streamingByNumber = new Map<number, AnimeStreamingEpisode>();
+  const metadataByNumber = new Map(
+    (metadata?.episodes || []).map((episode) => [episode.number, episode])
+  );
+
+  (anime.streamingEpisodes || []).forEach((episode, index) => {
+    const number = getEpisodeNumber(episode, index + 1);
+
+    if (!streamingByNumber.has(number)) {
+      streamingByNumber.set(number, episode);
+    }
+  });
+
+  const knownTotal = Math.max(
+    anime.episodes || 0,
+    anime.nextAiringEpisode?.episode ? anime.nextAiringEpisode.episode - 1 : 0,
+    streamingByNumber.size > 0 ? Math.max(...streamingByNumber.keys()) : 0,
+    metadataByNumber.size > 0 ? Math.max(...metadataByNumber.keys()) : 0
+  );
+  const episodeNumbers =
+    knownTotal > 0
+      ? Array.from({ length: knownTotal }, (_, index) => index + 1)
+      : Array.from(new Set([...streamingByNumber.keys(), ...metadataByNumber.keys()])).sort(
+          (a, b) => a - b
+        );
+  const fallbackThumbnail = getFallbackThumbnail(anime);
+
+  return episodeNumbers.map((number) => {
+    const streamingEpisode = streamingByNumber.get(number);
+    const metadataEpisode = metadataByNumber.get(number);
+
+    return {
+      number,
+      title: metadataEpisode?.title || streamingEpisode?.title || `Episode ${number}`,
+      thumbnail: metadataEpisode?.thumbnail || streamingEpisode?.thumbnail || fallbackThumbnail,
+      site: metadataEpisode?.site || streamingEpisode?.site,
+      href: buildWatchPath(anime, number),
+    };
+  });
+}
 
 function formatAiringDate(timestamp: number) {
   return new Intl.DateTimeFormat("en", {
@@ -160,6 +228,7 @@ function DetailInfoPanel({ anime }: { anime: Anime }) {
 
 export function AnimeDetailClient({ id }: { id: number }) {
   const [state, setState] = useState<AnimeDetailState | null>(null);
+  const [metadataState, setMetadataState] = useState<MetadataState | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -194,6 +263,35 @@ export function AnimeDetailClient({ id }: { id: number }) {
   const anime = state?.key === id ? state.anime : null;
   const error = state?.key === id ? state.error : null;
 
+  useEffect(() => {
+    let cancelled = false;
+
+    getAnimeMetadataBrowser(id)
+      .then((metadata) => {
+        if (!cancelled) {
+          setMetadataState({
+            key: id,
+            metadata,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMetadataState({
+            key: id,
+            metadata: null,
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  const episodeMetadata =
+    metadataState?.key === id ? metadataState.metadata : null;
+
   if (error) {
     return (
       <div className="min-h-screen px-4 pt-28">
@@ -220,6 +318,7 @@ export function AnimeDetailClient({ id }: { id: number }) {
       ? "Episode count TBA"
       : "Episode info unavailable";
   const nextAiring = anime.nextAiringEpisode;
+  const episodeItems = buildEpisodeItems(anime, episodeMetadata);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -380,6 +479,8 @@ export function AnimeDetailClient({ id }: { id: number }) {
             </div>
           </div>
         )}
+
+        {episodeItems.length > 0 && <EpisodeBrowser episodes={episodeItems} />}
 
         {relationEdges.filter((edge) => edge.node?.type === "ANIME").length > 0 && (
           <div className="mt-16 space-y-6">
