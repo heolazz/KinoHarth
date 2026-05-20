@@ -43,6 +43,11 @@ export type StreamSource = {
   notice?: string;
 };
 
+type StreamContext = {
+  title?: string;
+  poster?: string | null;
+};
+
 type AnipyStreamResponse = {
   url?: string;
   stream_url?: string;
@@ -125,7 +130,7 @@ type HianimeMapperResponse = {
   episodes?: HianimeMapperEpisode[];
 };
 
-function getTitle(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
+function getTitle(data: Awaited<ReturnType<typeof getAnimeDetail>> | null) {
   const anime = data?.Media;
 
   if (!anime) {
@@ -149,10 +154,18 @@ function getCandidateTitles(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
   ].filter(Boolean) as string[];
 }
 
-function getPoster(data: Awaited<ReturnType<typeof getAnimeDetail>>) {
+function getPoster(data: Awaited<ReturnType<typeof getAnimeDetail>> | null) {
   const anime = data?.Media;
 
   return anime?.bannerImage || anime?.coverImage.extraLarge || null;
+}
+
+function getContextTitle(context: StreamContext | undefined, data: Awaited<ReturnType<typeof getAnimeDetail>> | null) {
+  return context?.title || getTitle(data);
+}
+
+function getContextPoster(context: StreamContext | undefined, data: Awaited<ReturnType<typeof getAnimeDetail>> | null) {
+  return context?.poster ?? getPoster(data);
 }
 
 function normalizeTitle(title: string) {
@@ -221,17 +234,21 @@ function inferStreamType(url: string | null): StreamSourceType {
   return url.includes(".m3u8") ? "hls" : "embed";
 }
 
-async function getDummyStream(animeId: number, episode: number): Promise<StreamSource> {
-  const data = await getAnimeDetail(animeId);
+async function getDummyStream(
+  animeId: number,
+  episode: number,
+  context?: StreamContext
+): Promise<StreamSource> {
+  const data = context?.title ? null : await getAnimeDetail(animeId);
 
   return {
     provider: "dummy",
     type: "dummy",
     animeId,
     episode,
-    title: getTitle(data),
+    title: getContextTitle(context, data),
     url: null,
-    poster: getPoster(data),
+    poster: getContextPoster(context, data),
     subtitles: [],
     notice:
       "No free stream provider is configured yet. Set STREAM_PROVIDER=aniwatch to test the free HiAnime scraper provider.",
@@ -1039,12 +1056,13 @@ async function getMiruroStream(
   episode: number,
   streamServer?: string,
   episodeProvider?: string,
-  episodeCategory?: string
+  episodeCategory?: string,
+  context?: StreamContext
 ): Promise<StreamSource> {
   const baseUrl = process.env.MIRURO_API_BASE_URL;
 
   if (!baseUrl) {
-    const fallback = await getDummyStream(animeId, episode);
+    const fallback = await getDummyStream(animeId, episode, context);
 
     return {
       ...fallback,
@@ -1053,8 +1071,9 @@ async function getMiruroStream(
     };
   }
 
-  const data = await getAnimeDetail(animeId);
-  const title = getTitle(data);
+  const data = context?.title ? null : await getAnimeDetail(animeId);
+  const title = getContextTitle(context, data);
+  const poster = getContextPoster(context, data);
 
   try {
     const episodesJson = await fetchMiruroJson<MiruroEpisodesResponse>(
@@ -1079,7 +1098,7 @@ async function getMiruroStream(
         episode,
         title,
         url: null,
-        poster: getPoster(data),
+        poster,
         subtitles: [],
         availableEpisodes,
         notice: `Miruro could not find episode ${episode} for AniList ID ${animeId}.`,
@@ -1158,7 +1177,7 @@ async function getMiruroStream(
           episode,
           title,
           url,
-          poster: getPoster(data),
+          poster,
           headers,
           resolvedAnime: {
             id: String(watchCandidate.candidate.item.id || watchCandidate.candidate.item.slug),
@@ -1188,7 +1207,7 @@ async function getMiruroStream(
       episode,
       title,
       url: null,
-      poster: getPoster(data),
+      poster,
       subtitles: [],
       availableEpisodes,
       providerOptions,
@@ -1202,7 +1221,7 @@ async function getMiruroStream(
       episode,
       title,
       url: null,
-      poster: getPoster(data),
+      poster,
       subtitles: [],
       notice: `Miruro API failed: ${error instanceof Error ? error.message : "unknown error"}`,
     };
@@ -1215,7 +1234,8 @@ export async function getStreamSource(
   providerOverride?: string,
   streamServer?: string,
   episodeProvider?: string,
-  episodeCategory?: string
+  episodeCategory?: string,
+  context?: StreamContext
 ): Promise<StreamSource> {
   const provider = providerOverride || process.env.STREAM_PROVIDER || "dummy";
 
@@ -1238,11 +1258,12 @@ export async function getStreamSource(
         episode,
         streamServer,
         episodeProvider,
-        episodeCategory
+        episodeCategory,
+        context
       );
     }
   } catch (error) {
-    const fallback = await getDummyStream(animeId, episode);
+    const fallback = await getDummyStream(animeId, episode, context);
 
     return {
       ...fallback,
@@ -1259,5 +1280,5 @@ export async function getStreamSource(
     };
   }
 
-  return getDummyStream(animeId, episode);
+  return getDummyStream(animeId, episode, context);
 }

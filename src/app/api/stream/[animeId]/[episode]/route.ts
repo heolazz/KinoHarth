@@ -12,6 +12,8 @@ export async function GET(
   const episodeCategory = searchParams.get("episodeCategory") || undefined;
   const episodeProvider = searchParams.get("episodeProvider") || undefined;
   const server = searchParams.get("server") || undefined;
+  const title = searchParams.get("title") || undefined;
+  const poster = searchParams.get("poster") || undefined;
 
   if (!Number.isInteger(animeIdNumber) || !Number.isInteger(episodeNumber)) {
     return Response.json(
@@ -26,7 +28,11 @@ export async function GET(
     provider,
     server,
     episodeProvider,
-    episodeCategory
+    episodeCategory,
+    {
+      title,
+      poster,
+    }
   );
 
   return Response.json(source);

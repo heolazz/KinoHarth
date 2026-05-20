@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -41,6 +42,11 @@ type WatchState = {
   key: number;
   anime: WatchAnime | null;
   error: string | null;
+};
+
+type StreamLoadState = {
+  key: string;
+  source: StreamSource;
 };
 
 function formatEnum(value: string | null | undefined) {
@@ -163,7 +169,9 @@ export function WatchClient({
   animeId: number;
   episode: number;
 }) {
+  const searchParams = useSearchParams();
   const [state, setState] = useState<WatchState | null>(null);
+  const [streamState, setStreamState] = useState<StreamLoadState | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -233,6 +241,60 @@ export function WatchClient({
       poster: getFallbackThumbnail(anime),
     };
   }, [anime, episode]);
+  const queryKey = searchParams.toString();
+  const streamKey =
+    anime && model
+      ? `${anime.id}:${model.safeEpisode}:${model.title}:${model.poster}:${queryKey}`
+      : "";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!anime || !model) {
+      return;
+    }
+
+    const params = new URLSearchParams(queryKey);
+    params.set("title", model.title);
+    if (model.poster) params.set("poster", model.poster);
+
+    fetch(`/api/stream/${anime.id}/${model.safeEpisode}?${params.toString()}`, {
+      cache: "no-store",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Stream API responded with ${response.status}`);
+        }
+
+        return response.json() as Promise<StreamSource>;
+      })
+      .then((source) => {
+        if (!cancelled) {
+          setStreamState({
+            key: streamKey,
+            source,
+          });
+        }
+      })
+      .catch((caught) => {
+        if (!cancelled) {
+          setStreamState({
+            key: streamKey,
+            source: {
+              ...buildFallbackSource(anime, model.safeEpisode),
+              notice:
+                caught instanceof Error
+                  ? `Stream provider failed: ${caught.message}`
+                  : "Stream provider failed.",
+            },
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [anime, model, queryKey, streamKey]);
 
   if (error) {
     return (
@@ -249,6 +311,9 @@ export function WatchClient({
       </div>
     );
   }
+
+  const streamSource =
+    streamState?.key === streamKey ? streamState.source : model.source;
 
   const renderEpisodesList = (className?: string) => (
     <WatchEpisodeList
@@ -281,14 +346,14 @@ export function WatchClient({
 
           <div className="flex items-center gap-2 text-sm text-white/60">
             <Server className="h-4 w-4" />
-            Browser AniList mode
+            {streamSource.provider === "dummy" ? "Browser AniList mode" : `${streamSource.provider} player`}
           </div>
         </div>
 
         <WatchPlayerEpisodeLayout episodeList={renderEpisodesList("h-full")}>
           <StreamPlayer
             key={`${anime.id}-${model.safeEpisode}`}
-            source={model.source}
+            source={streamSource}
             title={`${model.title} episode ${model.safeEpisode}`}
             fallbackPoster={anime.bannerImage || anime.coverImage.extraLarge}
             basePath={buildWatchPath(anime, model.safeEpisode)}
@@ -304,7 +369,7 @@ export function WatchClient({
                   {anime.status}
                 </Badge>
                 <Badge variant="secondary" className="bg-white/10 text-white">
-                  client-side data
+                  {streamSource.provider === "dummy" ? "client-side data" : streamSource.provider}
                 </Badge>
                 <span className="text-sm text-white/55">
                   {model.totalEpisodes} episodes
