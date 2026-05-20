@@ -129,6 +129,16 @@ export function getProviderDisplayName(provider: string) {
   return provider.charAt(0).toUpperCase() + provider.slice(1);
 }
 
+const FALLBACK_PROVIDERS = [
+  { provider: "ally", category: "sub", tags: [] },
+  { provider: "bee", category: "sub", tags: [] },
+  { provider: "kiwi", category: "sub", tags: [] },
+  { provider: "dune", category: "sub", tags: [] },
+  { provider: "animekai", category: "sub", tags: [] },
+  { provider: "hop", category: "sub", tags: [] },
+  { provider: "zoro", category: "sub", tags: [] },
+];
+
 export function StreamPlayer({
   source,
   title,
@@ -143,7 +153,14 @@ export function StreamPlayer({
   ]);
   const selectedStream =
     streams.find((stream) => stream.url === source.url) || streams[0] || null;
-  const providerOptions = source.providerOptions || [];
+  const isDummy = source.type === "dummy" || !source.url;
+  const rawProviderOptions = source.providerOptions || [];
+  const providerOptions =
+    rawProviderOptions.length > 0
+      ? rawProviderOptions
+      : isDummy
+        ? FALLBACK_PROVIDERS
+        : [];
   const activeCategory =
     source.selectedEpisodeCategory || providerOptions[0]?.category || "sub";
   const activeProvider =
@@ -151,7 +168,11 @@ export function StreamPlayer({
       (option) =>
         option.provider === source.selectedEpisodeProvider &&
         option.category === activeCategory
-    ) || providerOptions.find((option) => option.category === activeCategory);
+    ) ||
+    providerOptions.find((option) => option.category === activeCategory) ||
+    (isDummy && providerOptions.length > 0
+      ? { provider: source.selectedEpisodeProvider || providerOptions[0].provider, category: activeCategory, tags: [] }
+      : undefined);
   const categories = Array.from(
     new Set(providerOptions.map((option) => option.category))
   ).sort((a, b) => {
