@@ -134,6 +134,7 @@ export default async function AnimeCatalogPage({
             {hasActiveFilters && (
               <Link
                 href="/anime"
+                prefetch={false}
                 className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm text-white/70 transition-colors hover:text-white"
               >
                 <X className="h-4 w-4" />
@@ -159,6 +160,7 @@ export default async function AnimeCatalogPage({
                         genre: isActive ? null : genre,
                         page: null,
                       })}
+                      prefetch={false}
                       className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
                         isActive
                           ? "bg-white text-black"
@@ -185,6 +187,7 @@ export default async function AnimeCatalogPage({
                         status: isActive ? null : status.value,
                         page: null,
                       })}
+                      prefetch={false}
                       className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
                         isActive
                           ? "bg-white text-black"
@@ -211,6 +214,7 @@ export default async function AnimeCatalogPage({
                         format: isActive ? null : format,
                         page: null,
                       })}
+                      prefetch={false}
                       className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
                         isActive
                           ? "bg-white text-black"
@@ -232,7 +236,7 @@ export default async function AnimeCatalogPage({
           </p>
           <div className="flex items-center gap-3">
             <Button
-              render={page > 1 ? <Link href={createHref(currentParams, { page: String(page - 1) })} /> : undefined}
+              render={page > 1 ? <Link href={createHref(currentParams, { page: String(page - 1) })} prefetch={false} /> : undefined}
               variant="outline"
               className="rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
               disabled={page <= 1}
@@ -242,7 +246,7 @@ export default async function AnimeCatalogPage({
             <Button
               render={
                 pageInfo?.hasNextPage ? (
-                  <Link href={createHref(currentParams, { page: String(page + 1) })} />
+                  <Link href={createHref(currentParams, { page: String(page + 1) })} prefetch={false} />
                 ) : undefined
               }
               className="rounded-full bg-white text-black hover:bg-white/90"

@@ -118,6 +118,7 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
+                      prefetch={false}
                       className={cn(
                         "rounded-xl px-3 py-3 text-sm font-semibold transition-colors",
                         isActive
@@ -146,7 +147,7 @@ export function Navbar() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" className="flex items-center group">
+          <Link href="/" prefetch={false} className="flex items-center group">
             <Image
               src="/logo2.png"
               alt="KinoHarth Logo"
@@ -167,6 +168,7 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={false}
                   className={cn(
                     "relative text-sm font-medium transition-colors hover:text-white group py-1 tracking-wide",
                     isActive ? "text-white" : "text-white/60"

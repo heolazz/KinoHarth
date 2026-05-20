@@ -404,7 +404,7 @@ export default async function AnimeDetailPage({
             </div>
             <div className="mt-6 max-w-sm mx-auto md:max-w-none space-y-3">
               <Button
-                render={<Link href={buildWatchPath(anime, 1)} />}
+                render={<Link href={buildWatchPath(anime, 1)} prefetch={false} />}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold gap-2 h-12 rounded-xl"
               >
                 <Play className="w-5 h-5 fill-current" />

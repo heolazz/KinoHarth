@@ -159,6 +159,7 @@ export function HeroSlider({ animes }: HeroSliderProps) {
           <div style={{ display: "flex", alignItems: "center", gap: "16px", paddingTop: "8px" }}>
             <Link
               href={buildWatchPath(anime, 1)}
+              prefetch={false}
               style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "9999px", padding: "0 32px", height: "48px", fontSize: "16px", fontWeight: 700, background: "white", color: "black", textDecoration: "none", transition: "all 0.2s" }}
             >
               <Play style={{ width: "20px", height: "20px", fill: "currentColor", marginRight: "8px" }} />
@@ -166,6 +167,7 @@ export function HeroSlider({ animes }: HeroSliderProps) {
             </Link>
             <Link
               href={`/anime/${anime.id}`}
+              prefetch={false}
               style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "9999px", padding: "0 32px", height: "48px", fontSize: "16px", fontWeight: 700, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(12px)", color: "white", border: "1px solid rgba(255,255,255,0.2)", textDecoration: "none", transition: "all 0.2s" }}
             >
               More Info

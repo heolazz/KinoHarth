@@ -63,7 +63,7 @@ export function AiringScheduleTabs({
               key={day.value}
               href={`/?day=${day.value}#schedule`}
               scroll={false}
-              prefetch={true}
+              prefetch={false}
               className={`relative flex min-w-[4.5rem] flex-col items-center gap-1 rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-300 cursor-pointer ${
                 isActive
                   ? "border-white/20 bg-white text-black shadow-[0_0_24px_rgba(255,255,255,0.08)]"
@@ -98,6 +98,7 @@ export function AiringScheduleTabs({
               <Link
                 key={item.id}
                 href={`/anime/${item.media.id}`}
+                prefetch={false}
                 className="group relative flex gap-3.5 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.025] p-3 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.06] hover:shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
               >
                 {/* Cover Image */}

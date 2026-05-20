@@ -155,6 +155,10 @@ export async function fetchAniList<T>(
   try {
     const response = await fetch(ANILIST_API_URL, {
       method: "POST",
+      cache: "force-cache",
+      next: {
+        revalidate: 300,
+      },
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",

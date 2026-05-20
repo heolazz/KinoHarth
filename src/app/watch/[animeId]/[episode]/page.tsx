@@ -390,6 +390,7 @@ export default async function WatchPage({
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <Link
             href={`/anime/${anime.id}`}
+            prefetch={false}
             className="inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -442,7 +443,7 @@ export default async function WatchPage({
               <Button
                 render={
                   previousEpisode ? (
-                    <Link href={watchPath(previousEpisode)} />
+                    <Link href={watchPath(previousEpisode)} prefetch={false} />
                   ) : undefined
                 }
                 variant="outline"
@@ -455,7 +456,7 @@ export default async function WatchPage({
               <Button
                 render={
                   nextEpisode ? (
-                    <Link href={watchPath(nextEpisode)} />
+                    <Link href={watchPath(nextEpisode)} prefetch={false} />
                   ) : undefined
                 }
                 className="h-10 rounded-full bg-white px-5 text-black hover:bg-white/90 flex-1 sm:flex-none justify-center gap-2"
@@ -483,7 +484,7 @@ export default async function WatchPage({
               </div>
               <div className="mt-4">
                 <Button
-                  render={<Link href={`/anime/${anime.id}`} />}
+                  render={<Link href={`/anime/${anime.id}`} prefetch={false} />}
                   variant="outline"
                   className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold gap-2 h-11 rounded-xl transition-all"
                 >
