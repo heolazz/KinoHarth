@@ -34,7 +34,7 @@ export function AnimeCard({ anime, className, variant = "default", rank }: Anime
   const statusColor = anime.status ? statusColorMap[anime.status] || "bg-gray-500" : "bg-gray-500";
 
   return (
-    <Link href={`/anime/${anime.id}`} className={cn("group flex flex-col gap-3", className)}>
+    <Link href={`/anime/${anime.id}`} prefetch={false} className={cn("group flex flex-col gap-3", className)}>
       <div className="relative aspect-[3/4] overflow-hidden rounded-[1.5rem] bg-muted/20 transition-all duration-500">
         <img
           src={anime.coverImage.extraLarge || anime.coverImage.large}

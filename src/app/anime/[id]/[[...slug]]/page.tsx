@@ -15,7 +15,7 @@ import { AnimeCard } from "@/components/anime/anime-card";
 import { EpisodeBrowser } from "@/components/anime/episode-browser";
 import { buildWatchPath, slugifyTitle, getAnimeTitle } from "@/lib/watch-path";
 import { getMiruroAnimeEpisodeMetadata, MiruroAnimeEpisodeMetadata } from "@/services/miruro";
-import { getBestTmdbEpisodeThumbnail } from "@/services/tmdb";
+import { getTmdbSeasonThumbnails } from "@/services/tmdb";
 import Link from "next/link";
 
 type CharacterEdge = {
@@ -153,23 +153,25 @@ async function hydrateEpisodeThumbnails({
   const fallbackThumbnail = getFallbackThumbnail(anime);
   const shouldHydrateFromTmdb = episodes.length <= MAX_DETAIL_TMDB_THUMBNAILS;
 
-  return Promise.all(
-    episodes.map(async (episode): Promise<HydratedEpisodePreview> => {
-      const tmdbThumbnail =
-        episode.thumbnail || !tmdbId || !tmdbSeason || !shouldHydrateFromTmdb
-          ? null
-          : await getBestTmdbEpisodeThumbnail({
-            seriesId: tmdbId,
-            seasonNumber: tmdbSeason,
-            episodeNumber: episode.number,
-          });
+  const seasonThumbnails =
+    tmdbId && tmdbSeason && shouldHydrateFromTmdb
+      ? await getTmdbSeasonThumbnails({
+          seriesId: tmdbId,
+          seasonNumber: tmdbSeason,
+        })
+      : null;
 
-      return {
-        ...episode,
-        thumbnail: episode.thumbnail || tmdbThumbnail || fallbackThumbnail,
-      };
-    })
-  );
+  return episodes.map((episode): HydratedEpisodePreview => {
+    const tmdbThumbnail =
+      episode.thumbnail || !seasonThumbnails
+        ? null
+        : seasonThumbnails[episode.number];
+
+    return {
+      ...episode,
+      thumbnail: episode.thumbnail || tmdbThumbnail || fallbackThumbnail,
+    };
+  });
 }
 
 function formatAiringDate(timestamp: number) {

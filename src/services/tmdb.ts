@@ -100,3 +100,79 @@ export async function getBestTmdbEpisodeThumbnail({
 
   return getTmdbImageUrl(bestStill?.file_path, "w500");
 }
+
+export type TmdbSeasonEpisode = {
+  episode_number: number;
+  still_path: string | null;
+  name: string;
+};
+
+export type TmdbSeasonDetailsResponse = {
+  id: number;
+  episodes: TmdbSeasonEpisode[];
+};
+
+export async function getTmdbSeasonDetails({
+  seriesId,
+  seasonNumber,
+}: {
+  seriesId: number;
+  seasonNumber: number;
+}): Promise<TmdbSeasonDetailsResponse | null> {
+  const token = process.env.TMDB_ACCESS_TOKEN;
+
+  if (!token) {
+    return null;
+  }
+
+  const url = new URL(`${TMDB_API_URL}/tv/${seriesId}/season/${seasonNumber}`);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      next: {
+        revalidate: 60 * 60 * 24, // Cache for 24 hours
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as TmdbSeasonDetailsResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function getTmdbSeasonThumbnails({
+  seriesId,
+  seasonNumber,
+}: {
+  seriesId: number;
+  seasonNumber: number;
+}): Promise<Record<number, string> | null> {
+  const data = await getTmdbSeasonDetails({ seriesId, seasonNumber });
+
+  if (!data || !data.episodes) {
+    return null;
+  }
+
+  const thumbnails: Record<number, string> = {};
+
+  for (const episode of data.episodes) {
+    if (episode.still_path) {
+      const url = getTmdbImageUrl(episode.still_path, "w500");
+
+      if (url) {
+        thumbnails[episode.episode_number] = url;
+      }
+    }
+  }
+
+  return thumbnails;
+}
+

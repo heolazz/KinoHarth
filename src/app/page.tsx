@@ -102,6 +102,7 @@ export default async function Home({
             {featuredUpdate && (
               <Link
                 href={`/anime/${featuredUpdate.id}`}
+                prefetch={false}
                 className="group relative min-h-[260px] overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition-colors hover:bg-white/[0.08]"
               >
                 <div
@@ -146,6 +147,7 @@ export default async function Home({
                 <Link
                   key={anime.id}
                   href={`/anime/${anime.id}`}
+                  prefetch={false}
                   className="group flex gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-2.5 transition-all hover:-translate-y-0.5 hover:bg-white/[0.08]"
                 >
                   <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-xl">

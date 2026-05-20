@@ -22,7 +22,7 @@ import {
   getMiruroAnimeEpisodeMetadata,
   MiruroAnimeEpisodeMetadata,
 } from "@/services/miruro";
-import { getBestTmdbEpisodeThumbnail } from "@/services/tmdb";
+import { getTmdbSeasonThumbnails } from "@/services/tmdb";
 
 const DEFAULT_EPISODE_COUNT = 12;
 const EPISODE_GROUP_SIZE = 100;
@@ -180,30 +180,32 @@ async function buildEpisodeItems({
     }
   });
 
-  return Promise.all(
-    episodeNumbers.map(async (episodeNumber): Promise<WatchEpisodeItem> => {
-      const miruroEpisode = miruroByNumber.get(episodeNumber);
-      const aniListEpisode = aniListByNumber.get(episodeNumber);
-      const tmdbThumbnail =
-        miruroEpisode?.image || aniListEpisode?.thumbnail || !miruroMetadata?.tmdbId || !miruroMetadata?.tmdbSeason
-          ? null
-          : await getBestTmdbEpisodeThumbnail({
-              seriesId: miruroMetadata.tmdbId,
-              seasonNumber: miruroMetadata.tmdbSeason,
-              episodeNumber,
-            });
+  const seasonThumbnails =
+    miruroMetadata?.tmdbId && miruroMetadata?.tmdbSeason
+      ? await getTmdbSeasonThumbnails({
+          seriesId: miruroMetadata.tmdbId,
+          seasonNumber: miruroMetadata.tmdbSeason,
+        })
+      : null;
 
-      return {
-        number: episodeNumber,
-        title: miruroEpisode?.title || aniListEpisode?.title || `Episode ${episodeNumber}`,
-        thumbnail:
-          miruroEpisode?.image ||
-          aniListEpisode?.thumbnail ||
-          tmdbThumbnail ||
-          fallbackThumbnail,
-      };
-    })
-  );
+  return episodeNumbers.map((episodeNumber): WatchEpisodeItem => {
+    const miruroEpisode = miruroByNumber.get(episodeNumber);
+    const aniListEpisode = aniListByNumber.get(episodeNumber);
+    const tmdbThumbnail =
+      miruroEpisode?.image || aniListEpisode?.thumbnail || !seasonThumbnails
+        ? null
+        : seasonThumbnails[episodeNumber];
+
+    return {
+      number: episodeNumber,
+      title: miruroEpisode?.title || aniListEpisode?.title || `Episode ${episodeNumber}`,
+      thumbnail:
+        miruroEpisode?.image ||
+        aniListEpisode?.thumbnail ||
+        tmdbThumbnail ||
+        fallbackThumbnail,
+    };
+  });
 }
 
 function CompactAnimeLink({
@@ -218,6 +220,7 @@ function CompactAnimeLink({
   return (
     <Link
       href={`/anime/${anime.id}`}
+      prefetch={false}
       className="group grid grid-cols-[56px_minmax(0,1fr)] gap-3.5 rounded-xl border border-white/5 bg-white/[0.02] p-2 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.04] backdrop-blur-md"
     >
       <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
