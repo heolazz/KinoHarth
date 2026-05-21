@@ -48,16 +48,16 @@ type RelationEdge = {
   node: Anime;
 };
 
+export type AnimeDetail = Anime & {
+  trailer?: { id: string; site: string; thumbnail: string } | null;
+  characters?: { edges?: CharacterEdge[] };
+  recommendations?: { edges?: RecommendationEdge[] };
+  relations?: { edges?: RelationEdge[] };
+};
+
 type AnimeDetailState = {
   key: number;
-  anime:
-    | (Anime & {
-        trailer?: { id: string; site: string; thumbnail: string } | null;
-        characters?: { edges?: CharacterEdge[] };
-        recommendations?: { edges?: RecommendationEdge[] };
-        relations?: { edges?: RelationEdge[] };
-      })
-    | null;
+  anime: AnimeDetail | null;
   error: string | null;
 };
 
@@ -226,8 +226,35 @@ function DetailInfoPanel({ anime }: { anime: Anime }) {
   );
 }
 
-export function AnimeDetailClient({ id }: { id: number }) {
-  const [state, setState] = useState<AnimeDetailState | null>(null);
+function getYoutubeEmbedUrl(trailer: { id: string; site: string } | null | undefined) {
+  if (!trailer?.id || trailer.site.toLowerCase() !== "youtube") {
+    return null;
+  }
+
+  const params = new URLSearchParams({
+    rel: "0",
+    modestbranding: "1",
+  });
+
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(trailer.id)}?${params.toString()}`;
+}
+
+export function AnimeDetailClient({
+  id,
+  initialAnime,
+}: {
+  id: number;
+  initialAnime?: AnimeDetail | null;
+}) {
+  const [state, setState] = useState<AnimeDetailState | null>(() =>
+    initialAnime
+      ? {
+          key: id,
+          anime: initialAnime,
+          error: null,
+        }
+      : null
+  );
   const [metadataState, setMetadataState] = useState<MetadataState | null>(null);
 
   useEffect(() => {
@@ -319,6 +346,7 @@ export function AnimeDetailClient({ id }: { id: number }) {
       : "Episode info unavailable";
   const nextAiring = anime.nextAiringEpisode;
   const episodeItems = buildEpisodeItems(anime, episodeMetadata);
+  const trailerUrl = getYoutubeEmbedUrl(anime.trailer);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -451,6 +479,23 @@ export function AnimeDetailClient({ id }: { id: number }) {
                 }}
               />
             </div>
+
+            {trailerUrl && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Trailer</h3>
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
+                  <iframe
+                    src={trailerUrl}
+                    title={`${title} trailer`}
+                    className="aspect-video w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    loading="lazy"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

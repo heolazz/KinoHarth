@@ -16,8 +16,26 @@ type SearchState = {
   error: string | null;
 };
 
-export function SearchClient({ query }: { query: string }) {
-  const [state, setState] = useState<SearchState | null>(null);
+export function SearchClient({
+  query,
+  initialData,
+}: {
+  query: string;
+  initialData?: {
+    results: Anime[];
+    total: number;
+  } | null;
+}) {
+  const [state, setState] = useState<SearchState | null>(() =>
+    query && initialData
+      ? {
+          key: query,
+          results: initialData.results,
+          total: initialData.total,
+          error: null,
+        }
+      : null
+  );
 
   useEffect(() => {
     let cancelled = false;

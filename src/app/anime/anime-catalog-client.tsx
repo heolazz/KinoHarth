@@ -59,9 +59,27 @@ function createHref(
   return query ? `/anime?${query}` : "/anime";
 }
 
-export function AnimeCatalogClient({ params }: { params: CatalogParams }) {
+export function AnimeCatalogClient({
+  params,
+  initialData,
+}: {
+  params: CatalogParams;
+  initialData?: {
+    anime: Anime[];
+    pageInfo?: AnimePageInfo;
+  } | null;
+}) {
   const requestKey = JSON.stringify(params);
-  const [state, setState] = useState<CatalogState | null>(null);
+  const [state, setState] = useState<CatalogState | null>(() =>
+    initialData
+      ? {
+          key: requestKey,
+          anime: initialData.anime,
+          pageInfo: initialData.pageInfo,
+          error: null,
+        }
+      : null
+  );
 
   const currentParams = {
     q: params.q,
@@ -127,8 +145,7 @@ export function AnimeCatalogClient({ params }: { params: CatalogParams }) {
                 Browse anime
               </h1>
               <p className="max-w-2xl text-base leading-relaxed text-white/60 md:text-lg">
-                Explore popular anime with quick filters. Data loads directly
-                from AniList in the browser to keep Cloudflare stable.
+                Explore popular anime with quick filters.
               </p>
             </div>
           </div>

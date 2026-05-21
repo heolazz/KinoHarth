@@ -1,4 +1,5 @@
 import { AnimeCatalogClient } from "@/app/anime/anime-catalog-client";
+import { getAnimeCatalog } from "@/services/anilist";
 
 function readParam(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
@@ -20,15 +21,28 @@ export default async function AnimeCatalogPage({
   }>;
 }) {
   const params = await searchParams;
+  const catalogParams = {
+    q: readParam(params.q),
+    genre: readParam(params.genre),
+    status: readParam(params.status),
+    format: readParam(params.format),
+    page: Math.max(Number(readParam(params.page)) || 1, 1),
+  };
+  const catalog = await getAnimeCatalog({
+    page: catalogParams.page,
+    perPage: 24,
+    search: catalogParams.q || undefined,
+    genre: catalogParams.genre || undefined,
+    status: catalogParams.status || undefined,
+    format: catalogParams.format || undefined,
+  });
 
   return (
     <AnimeCatalogClient
-      params={{
-        q: readParam(params.q),
-        genre: readParam(params.genre),
-        status: readParam(params.status),
-        format: readParam(params.format),
-        page: Math.max(Number(readParam(params.page)) || 1, 1),
+      params={catalogParams}
+      initialData={{
+        anime: catalog?.Page?.media || [],
+        pageInfo: catalog?.Page?.pageInfo,
       }}
     />
   );

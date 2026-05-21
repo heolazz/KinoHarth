@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-import { AnimeDetailClient } from "./anime-detail-client";
+import { getAnimeDetail } from "@/services/anilist";
+import { AnimeDetailClient, type AnimeDetail } from "./anime-detail-client";
 
 export const metadata: Metadata = {
   title: "Anime Detail | KinoHarth",
@@ -14,6 +16,18 @@ export default async function AnimeDetailPage({
 }) {
   const { id } = await params;
   const animeId = Number(id);
+  const detail = Number.isInteger(animeId)
+    ? await getAnimeDetail(animeId)
+    : null;
 
-  return <AnimeDetailClient id={animeId} />;
+  if (!detail?.Media) {
+    notFound();
+  }
+
+  return (
+    <AnimeDetailClient
+      id={animeId}
+      initialAnime={detail.Media as AnimeDetail}
+    />
+  );
 }

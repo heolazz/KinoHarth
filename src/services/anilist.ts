@@ -1,5 +1,8 @@
 export const ANILIST_API_URL =
   process.env.ANILIST_API_URL || "https://graphql.anilist.co";
+const KINOHARTH_ANILIST_API_BASE_URL =
+  process.env.KINOHARTH_ANILIST_API_BASE_URL?.replace(/\/$/, "");
+const KINOHARTH_ANILIST_API_KEY = process.env.KINOHARTH_ANILIST_API_KEY;
 
 export interface Anime {
   id: number;
@@ -197,6 +200,54 @@ export async function fetchAniList<T>(
   }
 }
 
+async function fetchKinoHarthAniListApi<T>(
+  path: string,
+  params: Record<string, string | number | undefined> = {}
+) {
+  if (!KINOHARTH_ANILIST_API_BASE_URL) {
+    return null;
+  }
+
+  const endpoint = new URL(
+    `${KINOHARTH_ANILIST_API_BASE_URL}/api/${path.replace(/^\//, "")}`
+  );
+
+  Object.entries(params).forEach(([name, value]) => {
+    if (value !== undefined && value !== "") {
+      endpoint.searchParams.set(name, String(value));
+    }
+  });
+
+  try {
+    const response = await fetch(endpoint, {
+      cache: "force-cache",
+      next: {
+        revalidate: 300,
+      },
+      headers: KINOHARTH_ANILIST_API_KEY
+        ? {
+            Accept: "application/json",
+            "X-KinoHarth-Key": KINOHARTH_ANILIST_API_KEY,
+          }
+        : {
+            Accept: "application/json",
+          },
+    });
+
+    if (!response.ok) {
+      console.error(
+        `KinoHarth AniList API HTTP Error | url=${endpoint} | status=${response.status}`
+      );
+      return null;
+    }
+
+    return (await response.json()) as T;
+  } catch (error) {
+    console.error("KinoHarth AniList API Network Error:", error);
+    return null;
+  }
+}
+
 // Queries
 const ANIME_FRAGMENT = `
   id
@@ -268,6 +319,15 @@ const ANIME_FRAGMENT = `
 `;
 
 export async function getTrendingAnime(page = 1, perPage = 20) {
+  const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
+    "trending",
+    { page, perPage }
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
   const query = `
     query ($page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
@@ -289,6 +349,15 @@ export async function getTrendingAnime(page = 1, perPage = 20) {
 }
 
 export async function getPopularAnime(page = 1, perPage = 20) {
+  const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
+    "popular",
+    { page, perPage }
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
   const query = `
     query ($page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
@@ -303,6 +372,15 @@ export async function getPopularAnime(page = 1, perPage = 20) {
 }
 
 export async function getRecentlyUpdatedAnime(page = 1, perPage = 12) {
+  const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
+    "recent",
+    { page, perPage }
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
   const query = `
     query ($page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
@@ -327,6 +405,20 @@ export async function getAiringSchedule({
   airingAtGreater: number;
   airingAtLesser: number;
 }) {
+  const proxyData = await fetchKinoHarthAniListApi<AiringScheduleResponse>(
+    "schedule",
+    {
+      page,
+      perPage,
+      start: airingAtGreater,
+      end: airingAtLesser,
+    }
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
   const query = `
     query (
       $page: Int,
@@ -368,6 +460,14 @@ export async function getAiringSchedule({
 }
 
 export async function getAnimeDetail(id: number) {
+  const proxyData = await fetchKinoHarthAniListApi<AnimeDetailResponse>(
+    `anime/${id}`
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
   const query = `
     query ($id: Int) {
       Media (id: $id, type: ANIME) {
@@ -425,6 +525,15 @@ export async function getAnimeDetail(id: number) {
 }
 
 export async function searchAnime(searchTerm: string, page = 1, perPage = 20) {
+  const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
+    "search",
+    { q: searchTerm, page, perPage }
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
   const query = `
     query ($search: String, $page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
@@ -458,6 +567,22 @@ export async function getAnimeCatalog({
   status?: string;
   format?: string;
 }) {
+  const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
+    "catalog",
+    {
+      page,
+      perPage,
+      q: search,
+      genre,
+      status,
+      format,
+    }
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
   const query = `
     query (
       $page: Int,

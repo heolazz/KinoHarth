@@ -17,7 +17,7 @@ import {
   getTrendingAnimeBrowser,
 } from "@/services/anilist-browser";
 
-function getScheduleWindow(dayParam?: string) {
+export function getScheduleWindow(dayParam?: string) {
   const now = new Date();
   const currentDay = now.getDay();
   const selectedDay = dayParam ? parseInt(dayParam, 10) : currentDay;
@@ -35,7 +35,7 @@ function getScheduleWindow(dayParam?: string) {
   };
 }
 
-type HomeState = {
+export type HomeState = {
   trendingAnime: Anime[];
   popularAnime: Anime[];
   recentlyUpdatedAnime: Anime[];
@@ -48,10 +48,24 @@ type HomeLoadState = {
   error: string | null;
 };
 
-export function HomeClient({ day }: { day?: string }) {
+export function HomeClient({
+  day,
+  initialData,
+}: {
+  day?: string;
+  initialData?: HomeState | null;
+}) {
   const scheduleWindow = useMemo(() => getScheduleWindow(day), [day]);
   const requestKey = `${scheduleWindow.start}:${scheduleWindow.end}`;
-  const [state, setState] = useState<HomeLoadState | null>(null);
+  const [state, setState] = useState<HomeLoadState | null>(() =>
+    initialData
+      ? {
+          key: requestKey,
+          data: initialData,
+          error: null,
+        }
+      : null
+  );
 
   useEffect(() => {
     let cancelled = false;
