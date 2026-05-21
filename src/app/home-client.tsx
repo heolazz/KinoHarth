@@ -130,10 +130,13 @@ export function HomeClient({
     <div className="flex min-h-screen flex-col">
       <HeroSlider animes={data.trendingAnime} />
 
-      <section className="container relative z-20 mx-auto -mt-4 space-y-16 px-4 pb-20 pt-12 md:px-6">
-        <ContinueWatching />
+      <section className="container relative z-20 mx-auto -mt-4 px-4 pb-20 pt-12 md:px-6">
+        <div className="mb-10">
+          <ContinueWatching />
+        </div>
 
-        <div id="trending" className="space-y-6 scroll-mt-28">
+        <div className="space-y-16">
+          <div id="trending" className="space-y-6 scroll-mt-28">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold tracking-tight text-white/95">
               Trending Now
@@ -273,6 +276,7 @@ export function HomeClient({
               </div>
             ))}
           </div>
+        </div>
         </div>
       </section>
     </div>
