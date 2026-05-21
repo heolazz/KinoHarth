@@ -145,7 +145,25 @@ export function HeroSlider({ animes }: HeroSliderProps) {
           )}
 
           {/* Main Title */}
-          <h1 style={{ fontSize: "clamp(2.5rem, 6vw, 5.5rem)", fontWeight: 900, color: "white", lineHeight: 0.95, letterSpacing: "-0.03em", margin: 0, textShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
+          <h1 
+            style={{ 
+              fontSize: title.length > 50 
+                ? "clamp(1.75rem, 3.5vw, 3rem)" 
+                : title.length > 30 
+                  ? "clamp(2rem, 4.5vw, 4rem)" 
+                  : "clamp(2.5rem, 6vw, 5.5rem)", 
+              fontWeight: 900, 
+              color: "white", 
+              lineHeight: 1.05, 
+              letterSpacing: "-0.03em", 
+              margin: 0, 
+              textShadow: "0 4px 20px rgba(0,0,0,0.5)",
+              display: "-webkit-box", 
+              WebkitLineClamp: 3, 
+              WebkitBoxOrient: "vertical", 
+              overflow: "hidden" 
+            }}
+          >
             {title}
           </h1>
 
