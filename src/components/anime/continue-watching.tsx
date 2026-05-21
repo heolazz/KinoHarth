@@ -43,7 +43,7 @@ export function ContinueWatching() {
         {historyList.map((item) => (
           <div
             key={item.animeId}
-            className="group relative min-w-[200px] md:min-w-[220px] lg:min-w-[240px] snap-start"
+            className="group relative w-[260px] sm:w-[280px] md:w-[300px] flex-none snap-start"
           >
             {/* Delete button */}
             <button
