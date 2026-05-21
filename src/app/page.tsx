@@ -1,4 +1,5 @@
-import { getScheduleWindow, HomeClient } from "@/app/home-client";
+import { HomeClient } from "@/app/home-client";
+import { getScheduleWindow } from "@/lib/utils";
 import {
   getAiringSchedule,
   getPopularAnime,
