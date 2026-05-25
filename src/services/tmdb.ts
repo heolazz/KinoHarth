@@ -176,3 +176,43 @@ export async function getTmdbSeasonThumbnails({
   return thumbnails;
 }
 
+export async function getTmdbLogo(tmdbId: number, type: "tv" | "movie" = "tv") {
+  const token = process.env.TMDB_ACCESS_TOKEN;
+  if (!token) return null;
+
+  const url = new URL(`${TMDB_API_URL}/${type}/${tmdbId}/images`);
+  url.searchParams.set("include_image_language", "en,ja,null");
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      next: { revalidate: 60 * 60 * 24 },
+    });
+
+    if (!response.ok) return null;
+
+    const imageData = await response.json();
+    const logo =
+      imageData.logos?.find((item: any) => item.iso_639_1 === "en") ||
+      imageData.logos?.find((item: any) => item.iso_639_1 === "ja") ||
+      imageData.logos?.find((item: any) => item.iso_639_1 === null) ||
+      imageData.logos?.[0];
+
+    if (!logo) return null;
+
+    return getTmdbImageUrl(logo.file_path, "original");
+  } catch {
+    return null;
+  }
+}
+
+export async function getTmdbAnimeLogo(tmdbId: number) {
+  let logo = await getTmdbLogo(tmdbId, "tv");
+  if (!logo) {
+    logo = await getTmdbLogo(tmdbId, "movie");
+  }
+  return logo;
+}

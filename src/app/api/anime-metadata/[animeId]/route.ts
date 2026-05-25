@@ -1,5 +1,5 @@
 import { getMiruroAnimeEpisodeMetadata } from "@/services/miruro";
-import { getTmdbSeasonThumbnails } from "@/services/tmdb";
+import { getTmdbSeasonThumbnails, getTmdbAnimeLogo } from "@/services/tmdb";
 
 export async function GET(
   _request: Request,
@@ -21,9 +21,14 @@ export async function GET(
         })
       : null;
 
+  const tmdbLogo = metadata?.tmdbId
+    ? await getTmdbAnimeLogo(metadata.tmdbId)
+    : null;
+
   return Response.json({
     tmdbId: metadata?.tmdbId || null,
     tmdbSeason: metadata?.tmdbSeason || null,
+    tmdbLogo,
     episodes:
       metadata?.episodes.map((episode) => ({
         number: episode.number,

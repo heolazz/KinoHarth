@@ -386,9 +386,19 @@ export function AnimeDetailClient({
 
           <div className="flex-1 space-y-6">
             <div className="space-y-2 text-center md:text-left">
-              <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
-                {title}
-              </h1>
+              {episodeMetadata?.tmdbLogo ? (
+                <div className="flex justify-center md:justify-start">
+                  <img
+                    src={episodeMetadata.tmdbLogo}
+                    alt={title}
+                    className="h-24 md:h-32 object-contain"
+                  />
+                </div>
+              ) : (
+                <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
+                  {title}
+                </h1>
+              )}
               {anime.title.native && (
                 <p className="text-lg font-medium text-muted-foreground">
                   {anime.title.native}

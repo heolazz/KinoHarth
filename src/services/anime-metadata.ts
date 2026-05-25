@@ -8,6 +8,7 @@ export type AnimeEpisodeMetadataItem = {
 export type AnimeMetadataResponse = {
   tmdbId: number | null;
   tmdbSeason: number | null;
+  tmdbLogo?: string | null;
   episodes: AnimeEpisodeMetadataItem[];
 };
 
