@@ -9,6 +9,7 @@ export type AnimeMetadataResponse = {
   tmdbId: number | null;
   tmdbSeason: number | null;
   tmdbLogo?: string | null;
+  tmdbLogoRatio?: number | null;
   episodes: AnimeEpisodeMetadataItem[];
 };
 

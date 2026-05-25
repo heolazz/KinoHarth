@@ -48,7 +48,7 @@ export function HeroSlider({ animes }: HeroSliderProps) {
   const slides = useMemo(() => animes.slice(0, MAX_HERO_SLIDES), [animes]);
   const total = slides.length;
   const activeIndex = total > 0 ? active % total : 0;
-  const [logos, setLogos] = useState<Record<number, string | null>>({});
+  const [logos, setLogos] = useState<Record<number, { url: string; ratio: number } | null>>({});
 
   useEffect(() => {
     slides.forEach((anime) => {
@@ -56,7 +56,19 @@ export function HeroSlider({ animes }: HeroSliderProps) {
       if (logos[anime.id] !== undefined) return;
       getAnimeMetadataBrowser(anime.id)
         .then((metadata) => {
-          setLogos((prev) => ({ ...prev, [anime.id]: metadata.tmdbLogo || null }));
+          const logoUrl = metadata.tmdbLogo;
+          const logoRatio = metadata.tmdbLogoRatio || 1.0;
+          if (logoUrl) {
+            setLogos((prev) => ({
+              ...prev,
+              [anime.id]: {
+                url: logoUrl,
+                ratio: logoRatio,
+              },
+            }));
+          } else {
+            setLogos((prev) => ({ ...prev, [anime.id]: null }));
+          }
         })
         .catch(() => {
           setLogos((prev) => ({ ...prev, [anime.id]: null }));
@@ -173,18 +185,55 @@ export function HeroSlider({ animes }: HeroSliderProps) {
 
           {/* Main Title */}
           {logos[anime.id] ? (
-            <div style={{ display: "flex" }}>
-              <img
-                src={logos[anime.id]!}
-                alt={title}
-                style={{
-                  maxHeight: "140px",
-                  objectFit: "contain",
-                  filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
-                  margin: 0,
-                }}
-              />
-            </div>
+            logos[anime.id]!.ratio >= 1.7 ? (
+              <div style={{ display: "flex" }}>
+                <img
+                  src={logos[anime.id]!.url}
+                  alt={title}
+                  style={{
+                    maxHeight: "140px",
+                    objectFit: "contain",
+                    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
+                    margin: 0,
+                  }}
+                />
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                <img
+                  src={logos[anime.id]!.url}
+                  alt={`${title} emblem`}
+                  style={{
+                    maxHeight: "80px",
+                    maxWidth: "80px",
+                    objectFit: "contain",
+                    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
+                    margin: 0,
+                  }}
+                />
+                <h1 
+                  style={{ 
+                    fontSize: title.length > 50 
+                      ? "clamp(1.75rem, 3.5vw, 3rem)" 
+                      : title.length > 30 
+                        ? "clamp(2rem, 4.5vw, 4rem)" 
+                        : "clamp(2.5rem, 6vw, 5.5rem)", 
+                    fontWeight: 900, 
+                    color: "white", 
+                    lineHeight: 1.05, 
+                    letterSpacing: "-0.03em", 
+                    margin: 0, 
+                    textShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                    display: "-webkit-box", 
+                    WebkitLineClamp: 3, 
+                    WebkitBoxOrient: "vertical", 
+                    overflow: "hidden" 
+                  }}
+                >
+                  {title}
+                </h1>
+              </div>
+            )
           ) : (
             <h1 
               style={{ 

@@ -176,7 +176,7 @@ export async function getTmdbSeasonThumbnails({
   return thumbnails;
 }
 
-export async function getTmdbLogo(tmdbId: number, type: "tv" | "movie" = "tv") {
+export async function getTmdbLogo(tmdbId: number, type: "tv" | "movie" = "tv"): Promise<{ url: string; aspectRatio: number } | null> {
   const token = process.env.TMDB_ACCESS_TOKEN;
   if (!token) return null;
 
@@ -203,13 +203,22 @@ export async function getTmdbLogo(tmdbId: number, type: "tv" | "movie" = "tv") {
 
     if (!logo) return null;
 
-    return getTmdbImageUrl(logo.file_path, "original");
+    const logoUrl = getTmdbImageUrl(logo.file_path, "original");
+    if (!logoUrl) return null;
+
+    const width = logo.width || 1;
+    const height = logo.height || 1;
+
+    return {
+      url: logoUrl,
+      aspectRatio: width / height,
+    };
   } catch {
     return null;
   }
 }
 
-export async function getTmdbAnimeLogo(tmdbId: number) {
+export async function getTmdbAnimeLogo(tmdbId: number): Promise<{ url: string; aspectRatio: number } | null> {
   let logo = await getTmdbLogo(tmdbId, "tv");
   if (!logo) {
     logo = await getTmdbLogo(tmdbId, "movie");

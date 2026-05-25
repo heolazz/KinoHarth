@@ -387,13 +387,26 @@ export function AnimeDetailClient({
           <div className="flex-1 space-y-6">
             <div className="space-y-2 text-center md:text-left">
               {episodeMetadata?.tmdbLogo ? (
-                <div className="flex justify-center md:justify-start">
-                  <img
-                    src={episodeMetadata.tmdbLogo}
-                    alt={title}
-                    className="h-24 md:h-32 object-contain"
-                  />
-                </div>
+                episodeMetadata.tmdbLogoRatio && episodeMetadata.tmdbLogoRatio >= 1.7 ? (
+                  <div className="flex justify-center md:justify-start">
+                    <img
+                      src={episodeMetadata.tmdbLogo}
+                      alt={title}
+                      className="h-24 md:h-32 object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:gap-5">
+                    <img
+                      src={episodeMetadata.tmdbLogo}
+                      alt={`${title} emblem`}
+                      className="h-16 w-16 object-contain md:h-20 md:w-20"
+                    />
+                    <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
+                      {title}
+                    </h1>
+                  </div>
+                )
               ) : (
                 <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
                   {title}

@@ -21,14 +21,15 @@ export async function GET(
         })
       : null;
 
-  const tmdbLogo = metadata?.tmdbId
+  const tmdbLogoData = metadata?.tmdbId
     ? await getTmdbAnimeLogo(metadata.tmdbId)
     : null;
 
   return Response.json({
     tmdbId: metadata?.tmdbId || null,
     tmdbSeason: metadata?.tmdbSeason || null,
-    tmdbLogo,
+    tmdbLogo: tmdbLogoData?.url || null,
+    tmdbLogoRatio: tmdbLogoData?.aspectRatio || null,
     episodes:
       metadata?.episodes.map((episode) => ({
         number: episode.number,
