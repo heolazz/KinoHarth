@@ -64,7 +64,7 @@ const sortOptions = [
   { label: "Trending", value: "TRENDING_DESC" },
   { label: "Top Rated", value: "SCORE_DESC" },
   { label: "Newest", value: "START_DATE_DESC" },
-  { label: "Oldest", value: "START_DATE_ASC" }
+  { label: "Oldest", value: "START_DATE" }
 ];
 
 const seasons = [
