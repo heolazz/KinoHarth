@@ -8,9 +8,15 @@ export const metadata: Metadata = {
   title: "KinoHarth - Anime Streaming",
   description: "Modern anime streaming platform with cinematic UI.",
   icons: {
-    icon: "/logo.ico",
-    shortcut: "/logo.ico",
-    apple: "/logo2.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png", sizes: "32x32" },
+      { url: "/logo2.png", type: "image/png", sizes: "192x192" }
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/logo2.png", sizes: "180x180", type: "image/png" }
+    ],
   },
 };
 
