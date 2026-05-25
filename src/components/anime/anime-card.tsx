@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Anime } from "@/services/anilist";
 import { cn } from "@/lib/utils";
@@ -34,13 +35,14 @@ export function AnimeCard({ anime, className, variant = "default", rank }: Anime
   const statusColor = anime.status ? statusColorMap[anime.status] || "bg-gray-500" : "bg-gray-500";
 
   return (
-    <Link href={`/anime/${anime.id}`} prefetch={false} className={cn("group flex flex-col gap-3", className)}>
+    <Link href={`/anime/${anime.id}`} className={cn("group flex flex-col gap-3", className)}>
       <div className="relative aspect-[3/4] overflow-hidden rounded-[1.5rem] bg-muted/20 transition-all duration-500">
-        <img
+        <Image
           src={anime.coverImage.extraLarge || anime.coverImage.large}
           alt={title}
-          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
+          fill
+          sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 20vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
         
         {/* Bottom Shadow for Rank Visibility */}
