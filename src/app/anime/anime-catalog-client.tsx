@@ -22,6 +22,12 @@ import { AnimeCard } from "@/components/anime/anime-card";
 import { AnimeError } from "@/components/anime/anime-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import type { Anime, AnimePageInfo } from "@/services/anilist";
 import { getAnimeCatalogBrowser } from "@/services/anilist-browser";
 
@@ -390,23 +396,33 @@ export function AnimeCatalogClient({
             <div className="space-y-6">
               {/* Sort Filter */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                   Sort By
                 </label>
-                <div className="relative">
-                  <select
-                    value={params.sort || "POPULARITY_DESC"}
-                    onChange={(e) => handleFilterUpdate({ sort: e.target.value })}
-                    className="w-full h-10 appearance-none rounded-xl border border-white/5 bg-white/[0.03] px-3.5 pr-10 text-sm text-white/80 outline-none transition-all focus:border-primary/50"
-                  >
-                    {sortOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value} className="bg-[#1c1c1c] text-white">
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40 pointer-events-none" />
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex w-full items-center justify-between h-10 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 text-sm text-white/80 hover:bg-white/[0.05] transition-all duration-200 outline-none text-left focus:border-primary/50">
+                    <span>{sortOptions.find(o => o.value === (params.sort || "POPULARITY_DESC"))?.label}</span>
+                    <ChevronDown className="h-4 w-4 text-white/40" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-[var(--anchor-width)] max-h-60 overflow-y-auto bg-[#1c1c1c]/95 border border-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl">
+                    {sortOptions.map((opt) => {
+                      const isSelected = (params.sort || "POPULARITY_DESC") === opt.value;
+                      return (
+                        <DropdownMenuItem
+                          key={opt.value}
+                          onClick={() => handleFilterUpdate({ sort: opt.value })}
+                          className={`flex items-center justify-between cursor-pointer px-3 py-2 rounded-lg text-xs transition-colors duration-150 ${
+                            isSelected 
+                              ? "bg-white/10 text-white font-bold" 
+                              : "text-white/70 hover:bg-white/5 hover:text-white"
+                          }`}
+                        >
+                          {opt.label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Status Filter */}
@@ -463,42 +479,80 @@ export function AnimeCatalogClient({
                   <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                     Season
                   </label>
-                  <div className="relative">
-                    <select
-                      value={params.season || ""}
-                      onChange={(e) => handleFilterUpdate({ season: e.target.value || null })}
-                      className="w-full h-9 appearance-none rounded-xl border border-white/5 bg-white/[0.03] px-3 pr-8 text-xs text-white/80 outline-none transition-all focus:border-primary/50"
-                    >
-                      <option value="">All</option>
-                      {seasons.map((s) => (
-                        <option key={s.value} value={s.value} className="bg-[#1c1c1c] text-white">
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40 pointer-events-none" />
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex w-full items-center justify-between h-9 rounded-xl border border-white/5 bg-white/[0.03] px-3 text-xs text-white/80 hover:bg-white/[0.05] transition-all duration-200 outline-none text-left focus:border-primary/50">
+                      <span>{seasons.find(s => s.value === params.season)?.label || "All"}</span>
+                      <ChevronDown className="h-3.5 w-3.5 text-white/40" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[var(--anchor-width)] max-h-60 overflow-y-auto bg-[#1c1c1c]/95 border border-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl">
+                      <DropdownMenuItem
+                        onClick={() => handleFilterUpdate({ season: null })}
+                        className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                          !params.season 
+                            ? "bg-white/10 text-white font-bold" 
+                            : "text-white/70 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        All
+                      </DropdownMenuItem>
+                      {seasons.map((s) => {
+                        const isSelected = params.season === s.value;
+                        return (
+                          <DropdownMenuItem
+                            key={s.value}
+                            onClick={() => handleFilterUpdate({ season: s.value })}
+                            className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                              isSelected 
+                                ? "bg-white/10 text-white font-bold" 
+                                : "text-white/70 hover:bg-white/5 hover:text-white"
+                            }`}
+                          >
+                            {s.label}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                     Year
                   </label>
-                  <div className="relative">
-                    <select
-                      value={params.year || ""}
-                      onChange={(e) => handleFilterUpdate({ year: e.target.value || null })}
-                      className="w-full h-9 appearance-none rounded-xl border border-white/5 bg-white/[0.03] px-3 pr-8 text-xs text-white/80 outline-none transition-all focus:border-primary/50"
-                    >
-                      <option value="">All</option>
-                      {years.map((y) => (
-                        <option key={y} value={y} className="bg-[#1c1c1c] text-white">
-                          {y}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40 pointer-events-none" />
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex w-full items-center justify-between h-9 rounded-xl border border-white/5 bg-white/[0.03] px-3 text-xs text-white/80 hover:bg-white/[0.05] transition-all duration-200 outline-none text-left focus:border-primary/50">
+                      <span>{params.year || "All"}</span>
+                      <ChevronDown className="h-3.5 w-3.5 text-white/40" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[var(--anchor-width)] max-h-60 overflow-y-auto bg-[#1c1c1c]/95 border border-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl">
+                      <DropdownMenuItem
+                        onClick={() => handleFilterUpdate({ year: null })}
+                        className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                          !params.year 
+                            ? "bg-white/10 text-white font-bold" 
+                            : "text-white/70 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        All
+                      </DropdownMenuItem>
+                      {years.map((y) => {
+                        const isSelected = params.year === y;
+                        return (
+                          <DropdownMenuItem
+                            key={y}
+                            onClick={() => handleFilterUpdate({ year: y })}
+                            className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                              isSelected 
+                                ? "bg-white/10 text-white font-bold" 
+                                : "text-white/70 hover:bg-white/5 hover:text-white"
+                            }`}
+                          >
+                            {y}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
@@ -644,20 +698,30 @@ export function AnimeCatalogClient({
                       {/* Urutkan */}
                       <div className="space-y-1.5">
                         <span className="text-[11px] font-bold uppercase tracking-wider text-white/40">Sort By</span>
-                        <div className="relative">
-                          <select
-                            value={params.sort || "POPULARITY_DESC"}
-                            onChange={(e) => handleFilterUpdate({ sort: e.target.value })}
-                            className="w-full h-10 appearance-none rounded-xl border border-white/5 bg-white/[0.03] px-3.5 pr-10 text-xs text-white/80 outline-none"
-                          >
-                            {sortOptions.map((opt) => (
-                              <option key={opt.value} value={opt.value} className="bg-[#1c1c1c] text-white">
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40 pointer-events-none" />
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="flex w-full items-center justify-between h-10 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 text-xs text-white/80 hover:bg-white/[0.05] transition-all duration-200 outline-none text-left focus:border-primary/50">
+                            <span>{sortOptions.find(o => o.value === (params.sort || "POPULARITY_DESC"))?.label}</span>
+                            <ChevronDown className="h-4 w-4 text-white/40" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-[var(--anchor-width)] max-h-60 overflow-y-auto bg-[#1c1c1c]/95 border border-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl">
+                            {sortOptions.map((opt) => {
+                              const isSelected = (params.sort || "POPULARITY_DESC") === opt.value;
+                              return (
+                                <DropdownMenuItem
+                                  key={opt.value}
+                                  onClick={() => handleFilterUpdate({ sort: opt.value })}
+                                  className={`flex items-center justify-between cursor-pointer px-3 py-2 rounded-lg text-xs transition-colors duration-150 ${
+                                    isSelected 
+                                      ? "bg-white/10 text-white font-bold" 
+                                      : "text-white/70 hover:bg-white/5 hover:text-white"
+                                  }`}
+                                >
+                                  {opt.label}
+                                </DropdownMenuItem>
+                              );
+                            })}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
 
                       {/* Status */}
@@ -708,40 +772,78 @@ export function AnimeCatalogClient({
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-white/40">Season</span>
-                          <div className="relative">
-                            <select
-                              value={params.season || ""}
-                              onChange={(e) => handleFilterUpdate({ season: e.target.value || null })}
-                              className="w-full h-9 appearance-none rounded-xl border border-white/5 bg-white/[0.03] px-3 pr-8 text-xs text-white/80 outline-none"
-                            >
-                              <option value="">All</option>
-                              {seasons.map((s) => (
-                                <option key={s.value} value={s.value} className="bg-[#1c1c1c] text-white">
-                                  {s.label}
-                                </option>
-                              ))}
-                            </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40 pointer-events-none" />
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="flex w-full items-center justify-between h-9 rounded-xl border border-white/5 bg-white/[0.03] px-3 text-xs text-white/80 hover:bg-white/[0.05] transition-all duration-200 outline-none text-left focus:border-primary/50">
+                              <span>{seasons.find(s => s.value === params.season)?.label || "All"}</span>
+                              <ChevronDown className="h-3.5 w-3.5 text-white/40" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-[var(--anchor-width)] max-h-60 overflow-y-auto bg-[#1c1c1c]/95 border border-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl">
+                              <DropdownMenuItem
+                                onClick={() => handleFilterUpdate({ season: null })}
+                                className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                                  !params.season 
+                                    ? "bg-white/10 text-white font-bold" 
+                                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                                }`}
+                              >
+                                All
+                              </DropdownMenuItem>
+                              {seasons.map((s) => {
+                                const isSelected = params.season === s.value;
+                                return (
+                                  <DropdownMenuItem
+                                    key={s.value}
+                                    onClick={() => handleFilterUpdate({ season: s.value })}
+                                    className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                                      isSelected 
+                                        ? "bg-white/10 text-white font-bold" 
+                                        : "text-white/70 hover:bg-white/5 hover:text-white"
+                                    }`}
+                                  >
+                                    {s.label}
+                                  </DropdownMenuItem>
+                                );
+                              })}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
 
                         <div className="space-y-1.5">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-white/40">Year</span>
-                          <div className="relative">
-                            <select
-                              value={params.year || ""}
-                              onChange={(e) => handleFilterUpdate({ year: e.target.value || null })}
-                              className="w-full h-9 appearance-none rounded-xl border border-white/5 bg-white/[0.03] px-3 pr-8 text-xs text-white/80 outline-none"
-                            >
-                              <option value="">All</option>
-                              {years.map((y) => (
-                                <option key={y} value={y} className="bg-[#1c1c1c] text-white">
-                                  {y}
-                                </option>
-                              ))}
-                            </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40 pointer-events-none" />
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="flex w-full items-center justify-between h-9 rounded-xl border border-white/5 bg-white/[0.03] px-3 text-xs text-white/80 hover:bg-white/[0.05] transition-all duration-200 outline-none text-left focus:border-primary/50">
+                              <span>{params.year || "All"}</span>
+                              <ChevronDown className="h-3.5 w-3.5 text-white/40" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-[var(--anchor-width)] max-h-60 overflow-y-auto bg-[#1c1c1c]/95 border border-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl">
+                              <DropdownMenuItem
+                                onClick={() => handleFilterUpdate({ year: null })}
+                                className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                                  !params.year 
+                                    ? "bg-white/10 text-white font-bold" 
+                                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                                }`}
+                              >
+                                All
+                              </DropdownMenuItem>
+                              {years.map((y) => {
+                                const isSelected = params.year === y;
+                                return (
+                                  <DropdownMenuItem
+                                    key={y}
+                                    onClick={() => handleFilterUpdate({ year: y })}
+                                    className={`flex items-center justify-between cursor-pointer px-3 py-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                                      isSelected 
+                                        ? "bg-white/10 text-white font-bold" 
+                                        : "text-white/70 hover:bg-white/5 hover:text-white"
+                                    }`}
+                                  >
+                                    {y}
+                                  </DropdownMenuItem>
+                                );
+                              })}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
 
