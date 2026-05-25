@@ -411,8 +411,7 @@ export function AnimeCatalogClient({
 
               {/* Status Filter */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
-                  <Compass className="h-3.5 w-3.5 text-primary/80" />
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                   Release Status
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -436,8 +435,7 @@ export function AnimeCatalogClient({
 
               {/* Format Filter */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
-                  <Award className="h-3.5 w-3.5 text-primary/80" />
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                   Format
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -462,8 +460,7 @@ export function AnimeCatalogClient({
               {/* Season & Year Filters */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-primary/80" />
+                  <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                     Season
                   </label>
                   <div className="relative">
@@ -484,8 +481,7 @@ export function AnimeCatalogClient({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-primary/80" />
+                  <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                     Year
                   </label>
                   <div className="relative">
@@ -508,8 +504,7 @@ export function AnimeCatalogClient({
 
               {/* Genre Filter */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
-                  <Filter className="h-3.5 w-3.5 text-primary/80" />
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                   Anime Genre
                 </label>
                 <div className="flex flex-wrap gap-1.5 max-h-[320px] overflow-y-auto pr-1 hide-scrollbar">
