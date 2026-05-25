@@ -46,10 +46,10 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-500",
+        "fixed z-50 transition-all duration-500 mx-auto",
         isScrolled
-          ? "bg-[#141414]/80 backdrop-blur-2xl border-b border-white/5 py-2 shadow-2xl"
-          : "bg-gradient-to-b from-black/60 to-transparent py-3"
+          ? "top-4 left-4 right-4 max-w-7xl rounded-2xl border border-white/5 bg-[#141414]/80 backdrop-blur-2xl py-2 shadow-2xl"
+          : "top-0 left-0 right-0 w-full rounded-none border-none bg-gradient-to-b from-black/80 to-transparent py-3"
       )}
     >
       {/* Mobile Search Overlay */}
