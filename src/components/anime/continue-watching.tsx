@@ -139,7 +139,7 @@ export function ContinueWatching() {
                     </div>
                   </div>
 
-                  <div className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded bg-primary px-1.5 py-0.5 text-[9px] font-black text-white shadow-md">
+                  <div className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 text-[10px] font-bold text-white/95 shadow-md">
                     EP {item.episodeNumber}
                   </div>
                 </div>
