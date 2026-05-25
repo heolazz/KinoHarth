@@ -32,6 +32,16 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 const MAX_HERO_SLIDES = 5;
 const SLIDE_INTERVAL_MS = 6000;
 
+function getPlainDescription(description: string | null | undefined) {
+  if (!description) return "";
+
+  return description
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function HeroSlider({ animes }: HeroSliderProps) {
   const [active, setActive] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -96,6 +106,7 @@ export function HeroSlider({ animes }: HeroSliderProps) {
 
   const anime = slides[activeIndex];
   const title = anime.title.english || anime.title.romaji;
+  const description = getPlainDescription(anime.description);
   const format = anime.format ? FORMAT_MAP[anime.format] || anime.format : "";
   const status = anime.status ? STATUS_MAP[anime.status] : null;
 
@@ -201,8 +212,9 @@ export function HeroSlider({ animes }: HeroSliderProps) {
           {/* Description */}
           <p
             style={{ fontSize: "16px", color: "rgba(255,255,255,0.65)", lineHeight: 1.6, maxWidth: "90%", margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}
-            dangerouslySetInnerHTML={{ __html: anime.description || "" }}
-          />
+          >
+            {description}
+          </p>
 
           {/* Action Buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px", paddingTop: "8px" }}>
