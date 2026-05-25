@@ -5,6 +5,7 @@ import { Anime } from "@/services/anilist";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { buildWatchPath } from "@/lib/watch-path";
+import { getAnimeMetadataBrowser } from "@/services/anime-metadata";
 
 interface HeroSliderProps {
   animes: Anime[];
@@ -37,6 +38,21 @@ export function HeroSlider({ animes }: HeroSliderProps) {
   const slides = useMemo(() => animes.slice(0, MAX_HERO_SLIDES), [animes]);
   const total = slides.length;
   const activeIndex = total > 0 ? active % total : 0;
+  const [logos, setLogos] = useState<Record<number, string | null>>({});
+
+  useEffect(() => {
+    slides.forEach((anime) => {
+      // Fetch logo if not already fetched
+      if (logos[anime.id] !== undefined) return;
+      getAnimeMetadataBrowser(anime.id)
+        .then((metadata) => {
+          setLogos((prev) => ({ ...prev, [anime.id]: metadata.tmdbLogo || null }));
+        })
+        .catch(() => {
+          setLogos((prev) => ({ ...prev, [anime.id]: null }));
+        });
+    });
+  }, [slides, logos]);
 
   const clearAutoPlay = useCallback(() => {
     if (!intervalRef.current) return;
@@ -145,27 +161,42 @@ export function HeroSlider({ animes }: HeroSliderProps) {
           )}
 
           {/* Main Title */}
-          <h1 
-            style={{ 
-              fontSize: title.length > 50 
-                ? "clamp(1.75rem, 3.5vw, 3rem)" 
-                : title.length > 30 
-                  ? "clamp(2rem, 4.5vw, 4rem)" 
-                  : "clamp(2.5rem, 6vw, 5.5rem)", 
-              fontWeight: 900, 
-              color: "white", 
-              lineHeight: 1.05, 
-              letterSpacing: "-0.03em", 
-              margin: 0, 
-              textShadow: "0 4px 20px rgba(0,0,0,0.5)",
-              display: "-webkit-box", 
-              WebkitLineClamp: 3, 
-              WebkitBoxOrient: "vertical", 
-              overflow: "hidden" 
-            }}
-          >
-            {title}
-          </h1>
+          {logos[anime.id] ? (
+            <div style={{ display: "flex" }}>
+              <img
+                src={logos[anime.id]!}
+                alt={title}
+                style={{
+                  maxHeight: "140px",
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
+                  margin: 0,
+                }}
+              />
+            </div>
+          ) : (
+            <h1 
+              style={{ 
+                fontSize: title.length > 50 
+                  ? "clamp(1.75rem, 3.5vw, 3rem)" 
+                  : title.length > 30 
+                    ? "clamp(2rem, 4.5vw, 4rem)" 
+                    : "clamp(2.5rem, 6vw, 5.5rem)", 
+                fontWeight: 900, 
+                color: "white", 
+                lineHeight: 1.05, 
+                letterSpacing: "-0.03em", 
+                margin: 0, 
+                textShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                display: "-webkit-box", 
+                WebkitLineClamp: 3, 
+                WebkitBoxOrient: "vertical", 
+                overflow: "hidden" 
+              }}
+            >
+              {title}
+            </h1>
+          )}
 
           {/* Description */}
           <p
