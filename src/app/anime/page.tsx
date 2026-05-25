@@ -17,6 +17,9 @@ export default async function AnimeCatalogPage({
     genre?: string | string[];
     status?: string | string[];
     format?: string | string[];
+    sort?: string | string[];
+    season?: string | string[];
+    year?: string | string[];
     page?: string | string[];
   }>;
 }) {
@@ -26,8 +29,12 @@ export default async function AnimeCatalogPage({
     genre: readParam(params.genre),
     status: readParam(params.status),
     format: readParam(params.format),
+    sort: readParam(params.sort),
+    season: readParam(params.season),
+    year: readParam(params.year),
     page: Math.max(Number(readParam(params.page)) || 1, 1),
   };
+  
   const catalog = await getAnimeCatalog({
     page: catalogParams.page,
     perPage: 24,
@@ -35,6 +42,9 @@ export default async function AnimeCatalogPage({
     genre: catalogParams.genre || undefined,
     status: catalogParams.status || undefined,
     format: catalogParams.format || undefined,
+    sort: catalogParams.sort ? [catalogParams.sort] : undefined,
+    season: catalogParams.season || undefined,
+    seasonYear: catalogParams.year ? Number(catalogParams.year) : undefined,
   });
 
   return (

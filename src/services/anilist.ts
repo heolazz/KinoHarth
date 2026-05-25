@@ -559,6 +559,9 @@ export async function getAnimeCatalog({
   genre,
   status,
   format,
+  sort,
+  season,
+  seasonYear,
 }: {
   page?: number;
   perPage?: number;
@@ -566,6 +569,9 @@ export async function getAnimeCatalog({
   genre?: string;
   status?: string;
   format?: string;
+  sort?: string[];
+  season?: string;
+  seasonYear?: number;
 }) {
   const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
     "catalog",
@@ -576,6 +582,9 @@ export async function getAnimeCatalog({
       genre,
       status,
       format,
+      sort: sort?.join(","),
+      season,
+      seasonYear,
     }
   );
 
@@ -591,6 +600,8 @@ export async function getAnimeCatalog({
       $genre: String,
       $status: MediaStatus,
       $format: MediaFormat,
+      $season: MediaSeason,
+      $seasonYear: Int,
       $sort: [MediaSort]
     ) {
       Page (page: $page, perPage: $perPage) {
@@ -606,6 +617,8 @@ export async function getAnimeCatalog({
           genre: $genre,
           status: $status,
           format: $format,
+          season: $season,
+          seasonYear: $seasonYear,
           sort: $sort,
           type: ANIME,
           isAdult: false
@@ -616,7 +629,8 @@ export async function getAnimeCatalog({
     }
   `;
 
-  const sort = search ? ["SEARCH_MATCH", "POPULARITY_DESC"] : ["POPULARITY_DESC"];
+  const defaultSort = search ? ["SEARCH_MATCH", "POPULARITY_DESC"] : ["POPULARITY_DESC"];
+  const finalSort = sort || defaultSort;
 
   return fetchAniList<AnimePageResponse>(query, {
     page,
@@ -625,6 +639,8 @@ export async function getAnimeCatalog({
     genre,
     status,
     format,
-    sort,
+    season,
+    seasonYear,
+    sort: finalSort,
   });
 }

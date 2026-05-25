@@ -385,6 +385,9 @@ export function getAnimeCatalogBrowser({
   genre,
   status,
   format,
+  sort,
+  season,
+  seasonYear,
 }: {
   page?: number;
   perPage?: number;
@@ -392,6 +395,9 @@ export function getAnimeCatalogBrowser({
   genre?: string;
   status?: string;
   format?: string;
+  sort?: string[];
+  season?: string;
+  seasonYear?: number;
 }) {
   const query = `
     query (
@@ -401,6 +407,8 @@ export function getAnimeCatalogBrowser({
       $genre: String,
       $status: MediaStatus,
       $format: MediaFormat,
+      $season: MediaSeason,
+      $seasonYear: Int,
       $sort: [MediaSort]
     ) {
       Page (page: $page, perPage: $perPage) {
@@ -416,6 +424,8 @@ export function getAnimeCatalogBrowser({
           genre: $genre,
           status: $status,
           format: $format,
+          season: $season,
+          seasonYear: $seasonYear,
           sort: $sort,
           type: ANIME,
           isAdult: false
@@ -426,7 +436,8 @@ export function getAnimeCatalogBrowser({
     }
   `;
 
-  const sort = search ? ["SEARCH_MATCH", "POPULARITY_DESC"] : ["POPULARITY_DESC"];
+  const defaultSort = search ? ["SEARCH_MATCH", "POPULARITY_DESC"] : ["POPULARITY_DESC"];
+  const finalSort = sort || defaultSort;
 
   return fetchAniListBrowser<AnimePageResponse>(query, {
     page,
@@ -435,6 +446,8 @@ export function getAnimeCatalogBrowser({
     genre,
     status,
     format,
-    sort,
+    season,
+    seasonYear,
+    sort: finalSort,
   });
 }
