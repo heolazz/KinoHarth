@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Menu, Search, ArrowLeft } from "lucide-react";
+import { Bell, Menu, Search, ArrowLeft, Sparkles, Tv, Flame, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,9 @@ export function Navbar() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchPathname, setMobileSearchPathname] = useState(pathname);
   const isMobileSearchVisible = isMobileSearchOpen && mobileSearchPathname === pathname;
+  
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -231,17 +234,100 @@ export function Navbar() {
           >
             <Search className="w-4 h-4" />
           </Button>
-          <div className="relative group">
-            <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 bg-white/5 backdrop-blur-md hover:bg-white/15 text-white border border-white/5 transition-all group-hover:scale-105">
+          <div className="relative">
+            <Button
+              type="button"
+              onClick={() => {
+                setIsNotificationsOpen(!isNotificationsOpen);
+                if (hasUnread) setHasUnread(false);
+              }}
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "rounded-full w-9 h-9 backdrop-blur-md border border-white/5 transition-all active:scale-95",
+                isNotificationsOpen
+                  ? "bg-white/20 text-white"
+                  : "bg-white/5 text-white/80 hover:bg-white/15 hover:text-white"
+              )}
+              aria-label="Toggle notifications"
+            >
               <Bell className="w-4 h-4" />
             </Button>
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-[#141414]" />
-          </div>
+            {hasUnread && (
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-[#141414] animate-pulse" />
+            )}
 
-          <Avatar className="w-9 h-9 border-2 border-white/10 ring-2 ring-transparent hover:ring-white/30 hover:border-white/30 transition-all duration-300 cursor-pointer ml-1">
-            <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=AnimeBoy&backgroundColor=c0aede" />
-            <AvatarFallback>UN</AvatarFallback>
-          </Avatar>
+            {/* Notifications Dropdown Panel */}
+            {isNotificationsOpen && (
+              <>
+                {/* Backdrop overlay for closing */}
+                <div 
+                  className="fixed inset-0 z-40 bg-transparent" 
+                  onClick={() => setIsNotificationsOpen(false)}
+                />
+                
+                <div className="absolute right-0 mt-3 w-80 bg-[#1c1c1c]/95 border border-white/10 backdrop-blur-xl rounded-2xl shadow-2xl z-50 p-4 animate-in fade-in slide-in-from-top-3 duration-200">
+                  <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center gap-1.5">
+                      <Bell className="h-3.5 w-3.5 text-primary" />
+                      Notifications
+                    </h4>
+                    <button 
+                      onClick={() => setHasUnread(false)}
+                      className="text-[10px] text-white/40 hover:text-white flex items-center gap-1 transition-colors"
+                    >
+                      <CheckCheck className="h-3 w-3" />
+                      Clear all
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
+                    {/* Item 1: Site Feature Update */}
+                    <div className="group/item flex gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
+                      <div className="shrink-0 h-8 w-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <p className="text-[11px] font-bold text-white/90">Catalog System Live!</p>
+                        <p className="text-[10px] text-white/50 leading-relaxed">
+                          Explore thousands of anime with advanced multi-filters (Genre, Season, Year, Format).
+                        </p>
+                        <span className="block text-[9px] text-white/30 pt-0.5">Just now</span>
+                      </div>
+                    </div>
+
+                    {/* Item 2: Schedule Alert */}
+                    <div className="group/item flex gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
+                      <div className="shrink-0 h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <Tv className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <p className="text-[11px] font-bold text-white/90">Airing Broadcast Alert</p>
+                        <p className="text-[10px] text-white/50 leading-relaxed">
+                          Demon Slayer: Hashira Training Arc Episode 4 is now broadcasting live.
+                        </p>
+                        <span className="block text-[9px] text-white/30 pt-0.5">2 hours ago</span>
+                      </div>
+                    </div>
+
+                    {/* Item 3: Trending Alert */}
+                    <div className="group/item flex gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
+                      <div className="shrink-0 h-8 w-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                        <Flame className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <p className="text-[11px] font-bold text-white/90">Trending This Week</p>
+                        <p className="text-[10px] text-white/50 leading-relaxed">
+                          Kaiju No. 8 & Wind Breaker are generating massive hype. Start watching now!
+                        </p>
+                        <span className="block text-[9px] text-white/30 pt-0.5">1 day ago</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>
