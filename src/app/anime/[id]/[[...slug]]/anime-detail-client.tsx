@@ -365,12 +365,24 @@ export function AnimeDetailClient({
       <section className="container relative z-10 -mt-40 px-4 pb-12 sm:-mt-44 md:-mt-48">
         <div className="flex flex-col gap-8 md:flex-row">
           <div className="w-full flex-shrink-0 md:w-64">
-            <div className="relative mx-auto aspect-[2/3] w-56 overflow-hidden rounded-xl shadow-2xl ring-1 ring-white/10 sm:w-64 md:w-full">
+            <div className="relative mx-auto aspect-[2/3] w-56 overflow-hidden rounded-xl shadow-2xl ring-1 ring-white/10 sm:w-64 md:w-full group">
               <img
                 src={anime.coverImage.extraLarge}
                 alt={title}
                 className="h-full w-full object-cover"
               />
+              {episodeMetadata?.tmdbLogo && (
+                <>
+                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-4 inset-x-0 flex justify-center px-4 pointer-events-none">
+                    <img
+                      src={episodeMetadata.tmdbLogo}
+                      alt={`${title} logo`}
+                      className="max-h-12 w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] transform transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                </>
+              )}
             </div>
             <div className="mx-auto mt-6 max-w-sm space-y-3 md:max-w-none">
               <Button
@@ -386,19 +398,9 @@ export function AnimeDetailClient({
 
           <div className="flex-1 space-y-6">
             <div className="space-y-2 text-center md:text-left">
-              {episodeMetadata?.tmdbLogo && episodeMetadata.tmdbLogoRatio && episodeMetadata.tmdbLogoRatio >= 1.2 ? (
-                <div className="flex justify-center md:justify-start">
-                  <img
-                    src={episodeMetadata.tmdbLogo}
-                    alt={title}
-                    className="h-24 md:h-32 object-contain"
-                  />
-                </div>
-              ) : (
-                <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
-                  {title}
-                </h1>
-              )}
+              <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
+                {title}
+              </h1>
               {anime.title.native && (
                 <p className="text-lg font-medium text-muted-foreground">
                   {anime.title.native}
