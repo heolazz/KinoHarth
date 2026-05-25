@@ -386,7 +386,7 @@ export function AnimeDetailClient({
 
           <div className="flex-1 space-y-6">
             <div className="space-y-2 text-center md:text-left">
-              {episodeMetadata?.tmdbLogo && episodeMetadata.tmdbLogoRatio && episodeMetadata.tmdbLogoRatio >= 1.5 ? (
+              {episodeMetadata?.tmdbLogo && episodeMetadata.tmdbLogoRatio && episodeMetadata.tmdbLogoRatio >= 1.2 ? (
                 <div className="flex justify-center md:justify-start">
                   <img
                     src={episodeMetadata.tmdbLogo}

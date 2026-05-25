@@ -184,7 +184,7 @@ export function HeroSlider({ animes }: HeroSliderProps) {
           )}
 
           {/* Main Title */}
-          {logos[anime.id] && logos[anime.id]!.ratio >= 1.5 ? (
+          {logos[anime.id] && logos[anime.id]!.ratio >= 1.2 ? (
             <div style={{ display: "flex" }}>
               <img
                 src={logos[anime.id]!.url}
