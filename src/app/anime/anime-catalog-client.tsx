@@ -623,8 +623,14 @@ export function AnimeCatalogClient({
 
             {/* Mobile Filter Drawer Overlay */}
             {isFilterOpen && (
-              <div className="fixed inset-0 z-50 lg:hidden flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="w-[300px] h-full bg-[#1c1c1c] p-6 overflow-y-auto space-y-6 flex flex-col justify-between border-l border-white/5 animate-in slide-in-from-right duration-300">
+              <div 
+                onClick={() => setIsFilterOpen(false)}
+                className="fixed inset-0 z-50 lg:hidden flex justify-end bg-black/60 backdrop-blur-sm h-[100dvh] w-screen animate-in fade-in duration-200"
+              >
+                <div 
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-[300px] h-full min-h-[100dvh] bg-[#1c1c1c] p-6 overflow-y-auto space-y-6 flex flex-col justify-between border-l border-white/5 animate-in slide-in-from-right duration-300"
+                >
                   <div className="space-y-6">
                     <div className="flex items-center justify-between border-b border-white/5 pb-4">
                       <h3 className="flex items-center gap-2 text-base font-bold">
