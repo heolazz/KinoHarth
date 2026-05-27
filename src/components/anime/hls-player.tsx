@@ -61,6 +61,7 @@ export function HlsPlayer({ source, title, onErrorFallback }: HlsPlayerProps) {
         className="h-full w-full bg-black"
         controls
         playsInline
+        autoPlay
         poster={source.poster || undefined}
         title={title}
         onError={() => {

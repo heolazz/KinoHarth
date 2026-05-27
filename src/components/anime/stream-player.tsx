@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Captions,
@@ -148,6 +148,12 @@ export function StreamPlayer({
 }: StreamPlayerProps) {
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<"category" | "provider" | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    setHasStarted(false);
+  }, [source.url]);
+
   const current = buildCurrentOption(source);
   const streams = dedupeStreams([
     ...(source.streams || []),
@@ -261,6 +267,33 @@ export function StreamPlayer({
               </div>
             </div>
           </>
+        ) : !hasStarted ? (
+          <div className="relative h-full w-full group">
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+              style={{
+                backgroundImage: `url("${fallbackPoster || source.poster || ""}")`,
+              }}
+            />
+            <div className="absolute inset-0 bg-black/40 transition-colors duration-300 group-hover:bg-black/20" />
+
+            <div className="relative z-10 flex h-full flex-col items-center justify-center gap-5 p-6 text-center">
+              <button
+                className="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 text-black shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all group-hover:scale-110 group-hover:bg-white"
+                type="button"
+                aria-label="Play video"
+                onClick={() => setHasStarted(true)}
+              >
+                <Play className="ml-1 h-9 w-9 fill-current" />
+              </button>
+            </div>
+            
+            <div className="absolute top-4 left-4 z-20">
+               <span className="rounded-md bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                 {categoryLabel(activeCategory)} • {getProviderDisplayName(activeProvider?.provider || "")}
+               </span>
+            </div>
+          </div>
         ) : selectedStream.type === "embed" ? (
           <iframe
             key={selectedStream.url}
