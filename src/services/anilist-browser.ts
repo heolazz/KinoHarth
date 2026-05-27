@@ -94,7 +94,7 @@ function hash(input: string) {
 }
 
 function getCacheKey(query: string, variables: Record<string, unknown>) {
-  return `kinoharth:anilist:${hash(JSON.stringify({ query, variables }))}`;
+  return `kinoharth:anilist:v2:${hash(JSON.stringify({ query, variables }))}`;
 }
 
 function readCache<T>(key: string) {
@@ -226,6 +226,27 @@ export function getPopularAnimeBrowser(page = 1, perPage = 20) {
   return fetchAniListBrowser<AnimePageResponse>(query, { page, perPage });
 }
 
+export function getTopRatedAnimeBrowser(page = 1, perPage = 12) {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page (page: $page, perPage: $perPage) {
+        pageInfo {
+          total
+          currentPage
+          lastPage
+          hasNextPage
+          perPage
+        }
+        media (sort: [SCORE_DESC, POPULARITY_DESC], type: ANIME, isAdult: false) {
+          ${ANIME_FRAGMENT}
+        }
+      }
+    }
+  `;
+
+  return fetchAniListBrowser<AnimePageResponse>(query, { page, perPage });
+}
+
 export function getRecentlyUpdatedAnimeBrowser(page = 1, perPage = 12) {
   const query = `
     query ($page: Int, $perPage: Int) {
@@ -245,6 +266,39 @@ export function getRecentlyUpdatedAnimeBrowser(page = 1, perPage = 12) {
   `;
 
   return fetchAniListBrowser<AnimePageResponse>(query, { page, perPage });
+}
+
+export function getNewSeasonAnimeBrowser(page = 1, perPage = 12) {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  let currentSeason = "WINTER";
+  if (currentMonth >= 2 && currentMonth <= 4) currentSeason = "SPRING";
+  else if (currentMonth >= 5 && currentMonth <= 7) currentSeason = "SUMMER";
+  else if (currentMonth >= 8 && currentMonth <= 10) currentSeason = "FALL";
+
+  const query = `
+    query ($page: Int, $perPage: Int, $season: MediaSeason, $seasonYear: Int) {
+      Page (page: $page, perPage: $perPage) {
+        pageInfo {
+          total
+          currentPage
+          lastPage
+          hasNextPage
+          perPage
+        }
+        media (season: $season, seasonYear: $seasonYear, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+          ${ANIME_FRAGMENT}
+        }
+      }
+    }
+  `;
+
+  return fetchAniListBrowser<AnimePageResponse>(query, { 
+    page, 
+    perPage,
+    season: currentSeason,
+    seasonYear: currentYear
+  });
 }
 
 export function getAiringScheduleBrowser({

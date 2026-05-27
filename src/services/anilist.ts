@@ -371,6 +371,55 @@ export async function getPopularAnime(page = 1, perPage = 20) {
   return fetchAniList<AnimePageResponse>(query, { page, perPage });
 }
 
+export async function getTopRatedAnime(page = 1, perPage = 12) {
+  const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
+    "top-rated",
+    { page, perPage }
+  );
+
+  if (KINOHARTH_ANILIST_API_BASE_URL) {
+    return proxyData;
+  }
+
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page (page: $page, perPage: $perPage) {
+        media (sort: [SCORE_DESC, POPULARITY_DESC], type: ANIME, isAdult: false) {
+          ${ANIME_FRAGMENT}
+        }
+      }
+    }
+  `;
+
+  return fetchAniList<AnimePageResponse>(query, { page, perPage });
+}
+
+export async function getNewSeasonAnime(page = 1, perPage = 12) {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  let currentSeason = "WINTER";
+  if (currentMonth >= 2 && currentMonth <= 4) currentSeason = "SPRING";
+  else if (currentMonth >= 5 && currentMonth <= 7) currentSeason = "SUMMER";
+  else if (currentMonth >= 8 && currentMonth <= 10) currentSeason = "FALL";
+
+  const query = `
+    query ($page: Int, $perPage: Int, $season: MediaSeason, $seasonYear: Int) {
+      Page (page: $page, perPage: $perPage) {
+        media (season: $season, seasonYear: $seasonYear, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+          ${ANIME_FRAGMENT}
+        }
+      }
+    }
+  `;
+
+  return fetchAniList<AnimePageResponse>(query, { 
+    page, 
+    perPage, 
+    season: currentSeason, 
+    seasonYear: currentYear 
+  });
+}
+
 export async function getRecentlyUpdatedAnime(page = 1, perPage = 12) {
   const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
     "recent",

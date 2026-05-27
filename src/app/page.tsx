@@ -3,7 +3,8 @@ import { getScheduleWindow } from "@/lib/utils";
 import {
   getAiringSchedule,
   getPopularAnime,
-  getRecentlyUpdatedAnime,
+  getNewSeasonAnime,
+  getTopRatedAnime,
   getTrendingAnime,
 } from "@/services/anilist";
 
@@ -14,10 +15,11 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const scheduleWindow = getScheduleWindow(params.day);
-  const [trending, popular, recentlyUpdated, schedule] = await Promise.all([
+  const [trending, popular, newSeason, topRated, schedule] = await Promise.all([
     getTrendingAnime(1, 10),
-    getPopularAnime(1, 12),
-    getRecentlyUpdatedAnime(1, 9),
+    getPopularAnime(1, 48),
+    getNewSeasonAnime(1, 48),
+    getTopRatedAnime(1, 48),
     getAiringSchedule({
       page: 1,
       perPage: 50,
@@ -32,7 +34,8 @@ export default async function Home({
       initialData={{
         trendingAnime: trending?.Page?.media || [],
         popularAnime: popular?.Page?.media || [],
-        recentlyUpdatedAnime: recentlyUpdated?.Page?.media || [],
+        newSeasonAnime: newSeason?.Page?.media || [],
+        topRatedAnime: topRated?.Page?.media || [],
         schedule: schedule?.Page?.airingSchedules || [],
       }}
     />
