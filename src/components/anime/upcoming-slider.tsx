@@ -28,7 +28,7 @@ export function UpcomingSlider({ animes }: UpcomingSliderProps) {
           marginBottom: "20px",
         }}
       >
-        Coming Soon
+        Upcoming
       </h2>
 
       {/* 
