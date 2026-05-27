@@ -785,8 +785,8 @@ async function fetchMiruroJson<T>(path: string, baseUrl: string) {
 
 function getMiruroProviderRank(provider: string | undefined) {
   const preferred = [
-    "ally",
     "bee",
+    "ally",
     "zoro",
     "dune",
     "animekai",
