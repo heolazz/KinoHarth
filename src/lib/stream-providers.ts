@@ -1250,6 +1250,44 @@ async function getMiruroStream(
   }
 }
 
+async function getMegaplayStream(
+  animeId: number,
+  episode: number,
+  context?: StreamContext
+): Promise<StreamSource> {
+  const subUrl = `https://megaplay.buzz/stream/ani/${animeId}/${episode}/sub`;
+  const dubUrl = `https://megaplay.buzz/stream/ani/${animeId}/${episode}/dub`;
+  
+  return {
+    provider: "miruro", // masquerade as miruro so it fits into the same UI group
+    type: "embed",
+    animeId,
+    episode,
+    title: context?.title || `Episode ${episode}`,
+    poster: context?.poster || null,
+    url: subUrl,
+    subtitles: [],
+    streams: [
+      {
+        url: subUrl,
+        type: "embed",
+        server: "Megaplay (Sub)",
+      },
+      {
+        url: dubUrl,
+        type: "embed",
+        server: "Megaplay (Dub)",
+      },
+      {
+        url: `https://vidnest.fun/anime/${animeId}/${episode}/stream`,
+        type: "embed",
+        server: "Vidnest (Backup)",
+      }
+    ],
+    notice: "Video is embedded directly from Megaplay (Fallback source)."
+  };
+}
+
 export async function getStreamSource(
   animeId: number,
   episode: number,
@@ -1284,15 +1322,21 @@ export async function getStreamSource(
         context
       );
 
-      // Jika miruro gagal mendapatkan link video (hanya ada kiwi yang mati), otomatis fallback ke animepahe
+      // Jika miruro gagal mendapatkan link video (kiwi mati), otomatis fallback ke megaplay iframe
       if (!miruroResult.url || miruroResult.type === "dummy") {
         try {
-          const fallbackResult = await getAnimepaheStream(animeId, episode);
-          if (fallbackResult.url && fallbackResult.type !== "dummy") {
-            return fallbackResult;
+          const embedFallback = await getMegaplayStream(animeId, episode, context);
+          if (embedFallback.url) {
+            return embedFallback;
           }
         } catch (e) {
-          // Abaikan error fallback dan kembalikan result asli miruro
+          // Jika megaplay gagal, coba fallback ke animepahe
+          try {
+            const paheFallback = await getAnimepaheStream(animeId, episode);
+            if (paheFallback.url && paheFallback.type !== "dummy") {
+              return paheFallback;
+            }
+          } catch (err) {}
         }
       }
 
