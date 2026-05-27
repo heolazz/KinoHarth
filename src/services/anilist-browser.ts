@@ -301,6 +301,27 @@ export function getNewSeasonAnimeBrowser(page = 1, perPage = 12) {
   });
 }
 
+export function getUpcomingAnimeBrowser(page = 1, perPage = 10) {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page (page: $page, perPage: $perPage) {
+        pageInfo {
+          total
+          currentPage
+          lastPage
+          hasNextPage
+          perPage
+        }
+        media (status: NOT_YET_RELEASED, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+          ${ANIME_FRAGMENT}
+        }
+      }
+    }
+  `;
+
+  return fetchAniListBrowser<AnimePageResponse>(query, { page, perPage });
+}
+
 export function getAiringScheduleBrowser({
   page = 1,
   perPage = 8,

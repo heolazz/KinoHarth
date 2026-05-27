@@ -420,6 +420,20 @@ export async function getNewSeasonAnime(page = 1, perPage = 12) {
   });
 }
 
+export async function getUpcomingAnime(page = 1, perPage = 10) {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page (page: $page, perPage: $perPage) {
+        media (status: NOT_YET_RELEASED, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+          ${ANIME_FRAGMENT}
+        }
+      }
+    }
+  `;
+
+  return fetchAniList<AnimePageResponse>(query, { page, perPage });
+}
+
 export async function getRecentlyUpdatedAnime(page = 1, perPage = 12) {
   const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
     "recent",

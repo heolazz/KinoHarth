@@ -10,6 +10,7 @@ import { AnimeGridTabs } from "@/components/anime/anime-grid-tabs";
 import { AnimeError, AnimeLoading } from "@/components/anime/anime-loading";
 import { ContinueWatching } from "@/components/anime/continue-watching";
 import { HeroSlider } from "@/components/anime/hero-slider";
+import { UpcomingSlider } from "@/components/anime/upcoming-slider";
 import type { AiringScheduleItem, Anime } from "@/services/anilist";
 import {
   getAiringScheduleBrowser,
@@ -17,6 +18,7 @@ import {
   getNewSeasonAnimeBrowser,
   getTopRatedAnimeBrowser,
   getTrendingAnimeBrowser,
+  getUpcomingAnimeBrowser,
 } from "@/services/anilist-browser";
 import { getScheduleWindow } from "@/lib/utils";
 
@@ -25,6 +27,7 @@ export type HomeState = {
   popularAnime: Anime[];
   newSeasonAnime: Anime[];
   topRatedAnime: Anime[];
+  upcomingAnime: Anime[];
   schedule: AiringScheduleItem[];
 };
 
@@ -61,6 +64,7 @@ export function HomeClient({
       getPopularAnimeBrowser(1, 48),
       getNewSeasonAnimeBrowser(1, 48),
       getTopRatedAnimeBrowser(1, 48),
+      getUpcomingAnimeBrowser(1, 15),
       getAiringScheduleBrowser({
         page: 1,
         perPage: 50,
@@ -88,9 +92,11 @@ export function HomeClient({
               results[2].status === "fulfilled" ? results[2].value.Page?.media || [] : [],
             topRatedAnime:
               results[3].status === "fulfilled" ? results[3].value.Page?.media || [] : [],
+            upcomingAnime:
+              results[4].status === "fulfilled" ? results[4].value.Page?.media || [] : [],
             schedule:
-              results[4].status === "fulfilled"
-                ? results[4].value.Page?.airingSchedules || []
+              results[5].status === "fulfilled"
+                ? results[5].value.Page?.airingSchedules || []
                 : [],
           },
         });
@@ -170,6 +176,10 @@ export function HomeClient({
               schedule={data.schedule}
               initialDay={scheduleWindow.selectedDay}
             />
+          </div>
+
+          <div className="pt-6 pb-4">
+            <UpcomingSlider animes={data.upcomingAnime} />
           </div>
         </div>
       </section>
