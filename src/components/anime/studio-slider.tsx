@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 export const POPULAR_STUDIOS = [
   { 
@@ -76,7 +76,6 @@ export function StudioSlider() {
       {/* Section Header — matches "Trending Now" pattern */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold tracking-tight text-white/95 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-amber-400" />
           Explore by Studio
         </h2>
       </div>

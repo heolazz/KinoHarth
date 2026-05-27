@@ -146,8 +146,6 @@ export function HomeClient({
         </div>
 
         <div className="space-y-16">
-          <StudioSlider />
-
           <div id="trending" className="space-y-6 scroll-mt-28">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold tracking-tight text-white/95">
@@ -165,6 +163,8 @@ export function HomeClient({
               ))}
             </div>
           </div>
+
+          <StudioSlider />
 
           <div id="discover" className="scroll-mt-28">
             <AnimeGridTabs

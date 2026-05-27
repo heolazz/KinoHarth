@@ -160,7 +160,7 @@ export function StudioClient({
       </div>
 
       {/* Content Grid */}
-      <section className="container mx-auto px-4 md:px-8 lg:px-12 pt-8 pb-20">
+      <section className="container px-4 md:px-8 lg:px-12 pt-8 pb-20">
         {error && <AnimeError message={error} />}
 
         {isLoading && results.length === 0 && (
