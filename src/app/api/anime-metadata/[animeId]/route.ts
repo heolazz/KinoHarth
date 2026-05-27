@@ -1,3 +1,4 @@
+import { getAnimeDetail } from "@/services/anilist";
 import { getMiruroAnimeEpisodeMetadata } from "@/services/miruro";
 import { getTmdbSeasonThumbnails, getTmdbAnimeLogo } from "@/services/tmdb";
 
@@ -13,6 +14,10 @@ export async function GET(
   }
 
   const metadata = await getMiruroAnimeEpisodeMetadata(animeIdNumber);
+  
+  // Fetch anime detail to know if it's a MOVIE to correctly query TMDB logo
+  const animeDetail = await getAnimeDetail(animeIdNumber).catch(() => null);
+  const isMovie = animeDetail?.Media?.format === "MOVIE";
   const seasonThumbnails =
     metadata?.tmdbId && metadata?.tmdbSeason
       ? await getTmdbSeasonThumbnails({
@@ -22,7 +27,7 @@ export async function GET(
       : null;
 
   const tmdbLogoData = metadata?.tmdbId
-    ? await getTmdbAnimeLogo(metadata.tmdbId)
+    ? await getTmdbAnimeLogo(metadata.tmdbId, isMovie)
     : null;
 
   return Response.json({

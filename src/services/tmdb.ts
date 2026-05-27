@@ -218,10 +218,10 @@ export async function getTmdbLogo(tmdbId: number, type: "tv" | "movie" = "tv"): 
   }
 }
 
-export async function getTmdbAnimeLogo(tmdbId: number): Promise<{ url: string; aspectRatio: number } | null> {
-  let logo = await getTmdbLogo(tmdbId, "tv");
+export async function getTmdbAnimeLogo(tmdbId: number, isMovie: boolean = false): Promise<{ url: string; aspectRatio: number } | null> {
+  let logo = await getTmdbLogo(tmdbId, isMovie ? "movie" : "tv");
   if (!logo) {
-    logo = await getTmdbLogo(tmdbId, "movie");
+    logo = await getTmdbLogo(tmdbId, isMovie ? "tv" : "movie");
   }
   return logo;
 }
