@@ -98,13 +98,16 @@ function buildEpisodeNumbers(
   const metadataNumbers = metadata?.episodes.map((episode) => episode.number) || [];
   const maxMetadataEpisode =
     metadataNumbers.length > 0 ? Math.max(...metadataNumbers) : 0;
-  const totalEpisodes = Math.max(
+
+  // Use the real episode count from AniList when available.
+  // Only fall back to DEFAULT_EPISODE_COUNT when NO source provides a count.
+  const knownMax = Math.max(
     anime.episodes || 0,
     maxStreamingEpisode,
     maxMetadataEpisode,
-    currentEpisode,
-    DEFAULT_EPISODE_COUNT
+    currentEpisode
   );
+  const totalEpisodes = knownMax > 0 ? knownMax : DEFAULT_EPISODE_COUNT;
 
   return Array.from({ length: totalEpisodes }, (_, index) => index + 1);
 }
