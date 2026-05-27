@@ -34,8 +34,44 @@ export function StudioClient({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fallback: if server-side fetch failed (e.g. Cloudflare Workers blocked by AniList),
+  // fetch initial data client-side from the user's browser
   useEffect(() => {
-    if (page === 1) return; // Handled by initialData
+    if (results.length > 0) return; // Already have data from server
+    let cancelled = false;
+    setIsLoading(true);
+
+    getAnimeByStudioBrowser(studioId, 1, 24)
+      .then((data) => {
+        if (cancelled) return;
+        const media = data.Page?.media || [];
+        const seen = new Set<number>();
+        setResults(
+          media.filter((item) => {
+            if (seen.has(item.id)) return false;
+            seen.add(item.id);
+            return true;
+          })
+        );
+        setHasNextPage(data.Page?.pageInfo?.hasNextPage || false);
+        setIsLoading(false);
+      })
+      .catch((caught) => {
+        if (!cancelled) {
+          setError(caught instanceof Error ? caught.message : String(caught));
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studioId]);
+
+  // Load more pages
+  useEffect(() => {
+    if (page === 1) return; // Page 1 handled above
 
     let cancelled = false;
     setIsLoading(true);
@@ -95,6 +131,12 @@ export function StudioClient({
       <section className="container px-4 md:px-8 lg:px-12">
         {error && <AnimeError message={error} />}
 
+        {isLoading && results.length === 0 && (
+          <div className="mt-12">
+            <AnimeLoading title={`Loading ${studio?.name || "studio"} anime...`} />
+          </div>
+        )}
+
         {!error && results.length === 0 && !isLoading && (
           <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">
             <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
@@ -102,7 +144,7 @@ export function StudioClient({
             </div>
             <h2 className="text-2xl font-semibold">No anime found</h2>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-white/55">
-              We couldn't find any anime by this studio.
+              We couldn&apos;t find any anime by this studio.
             </p>
           </div>
         )}
@@ -115,7 +157,7 @@ export function StudioClient({
           </div>
         )}
 
-        {isLoading && (
+        {isLoading && results.length > 0 && (
           <div className="mt-12">
             <AnimeLoading title="Loading more anime..." />
           </div>
