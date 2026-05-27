@@ -212,12 +212,12 @@ async function createHiAnimeScraper() {
 }
 
 function pickBestAnimepaheResult(
-  results: AnimepaheSearchItem[],
+  results: any[],
   titles: string[]
 ) {
   const normalizedTitles = titles.map(normalizeTitle).filter(Boolean);
   const validResults = results.filter(
-    (anime) => anime.session && (anime.title || anime.name)
+    (anime) => (anime.session || anime.id) && (anime.title || anime.name)
   );
 
   return (
@@ -373,100 +373,100 @@ async function getAnimepaheStream(
   animeId: number,
   episode: number
 ): Promise<StreamSource> {
-  const baseUrl = process.env.ANIMEPAHE_BASE_URL;
-
-  if (!baseUrl) {
-    const fallback = await getDummyStream(animeId, episode);
-
-    return {
-      ...fallback,
-      provider: "animepahe",
-      notice:
-        "Set ANIMEPAHE_BASE_URL to your self-hosted animepahe-api instance before using the Animepahe provider.",
-    };
-  }
-
   const data = await getAnimeDetail(animeId);
   const title = getTitle(data);
   const titles = getCandidateTitles(data);
-  const query = encodeURIComponent(titles[0] || title);
-  const search = await fetchAnimepaheJson<AnimepaheSearchResponse>(
-    `/api/search?q=${query}`,
-    baseUrl
-  );
-  const resolvedAnime = pickBestAnimepaheResult(
-    search.data || search.results || [],
-    titles
-  );
 
-  if (!resolvedAnime?.session) {
+  try {
+    const { ANIME } = await import("@consumet/extensions");
+    const animepahe = new ANIME.AnimePahe();
+
+    const query = titles[0] || title;
+    const searchRes = await animepahe.search(query);
+
+    const resolvedAnime = pickBestAnimepaheResult(
+      searchRes.results || [],
+      titles
+    );
+
+    if (!resolvedAnime?.id) {
+      return {
+        provider: "animepahe",
+        type: "dummy",
+        animeId,
+        episode,
+        title,
+        url: null,
+        poster: getPoster(data),
+        subtitles: [],
+        notice: `Consumet Animepahe could not resolve "${title}" from search results.`,
+      };
+    }
+
+    const info = await animepahe.fetchAnimeInfo(resolvedAnime.id);
+    const epMatch = info.episodes?.find((ep: any) => ep.number === episode);
+
+    if (!epMatch?.id) {
+      return {
+        provider: "animepahe",
+        type: "dummy",
+        animeId,
+        episode,
+        title,
+        url: null,
+        poster: getPoster(data),
+        resolvedAnime: {
+          id: resolvedAnime.id,
+          name: resolvedAnime.title || resolvedAnime.name || title,
+        },
+        subtitles: [],
+        notice: `Consumet Animepahe resolved "${title}", but episode ${episode} was not found.`,
+      };
+    }
+
+    const streamInfo = await animepahe.fetchEpisodeSources(epMatch.id);
+    const sources = streamInfo.sources || [];
+    
+    // Prefer 1080p, then 720p, then whatever is available
+    const source = 
+      sources.find((item: any) => item.quality === "1080p") || 
+      sources.find((item: any) => item.quality === "720p") || 
+      sources.find((item: any) => item.url) || 
+      sources[0];
+      
+    const url = source?.url || null;
+
     return {
       provider: "animepahe",
-      type: "dummy",
+      type: source?.isM3U8 || inferStreamType(url) === "hls" ? "hls" : inferStreamType(url),
       animeId,
       episode,
       title,
-      url: null,
-      poster: getPoster(data),
-      subtitles: [],
-      notice: `Animepahe could not resolve "${title}" from your animepahe-api search results.`,
-    };
-  }
-
-  const episodeSession = await getAnimepaheReleases(
-    baseUrl,
-    resolvedAnime.session,
-    episode
-  );
-
-  if (!episodeSession) {
-    return {
-      provider: "animepahe",
-      type: "dummy",
-      animeId,
-      episode,
-      title,
-      url: null,
+      url,
       poster: getPoster(data),
       resolvedAnime: {
-        id: resolvedAnime.session,
+        id: resolvedAnime.id,
         name: resolvedAnime.title || resolvedAnime.name || title,
       },
+      subtitles: [], // Animepahe uses hardsubs usually
+      notice: url
+        ? `Resolved through Consumet Animepahe as "${resolvedAnime.title || resolvedAnime.name || title}".`
+        : "Consumet Animepahe returned no playable HLS source for this episode.",
+    };
+  } catch (error) {
+    console.error("Consumet Animepahe Error:", error);
+    return {
+      provider: "animepahe",
+      type: "dummy",
+      animeId,
+      episode,
+      title,
+      url: null,
+      poster: getPoster(data),
       subtitles: [],
-      notice: `Animepahe resolved "${title}" to "${resolvedAnime.title || resolvedAnime.name}", but episode ${episode} was not found.`,
+      notice: `Consumet Animepahe Error: ${error instanceof Error ? error.message : "unknown error"}`,
     };
   }
-
-  const play = await fetchAnimepaheJson<AnimepahePlayResponse>(
-    `/api/play/${resolvedAnime.session}?episodeId=${episodeSession}&downloads=false`,
-    baseUrl
-  );
-  const sources = play.source ? [play.source, ...(play.sources || [])] : play.sources || [];
-  const source = sources.find((item) => item.url || item.file);
-  const url = source?.url || source?.file || null;
-
-  return {
-    provider: "animepahe",
-    type: source?.isM3U8 || inferStreamType(url) === "hls" ? "hls" : inferStreamType(url),
-    animeId,
-    episode,
-    title,
-    url,
-    poster: getPoster(data),
-    resolvedAnime: {
-      id: resolvedAnime.session,
-      name: resolvedAnime.title || resolvedAnime.name || title,
-    },
-    subtitles:
-      play.subtitles?.map((subtitle) => ({
-        label: subtitle.label || subtitle.lang || subtitle.language || "Subtitle",
-        src: subtitle.url || subtitle.src || "",
-        language: subtitle.lang || subtitle.language,
-      })).filter((subtitle) => Boolean(subtitle.src)) || [],
-    notice: url
-      ? `Resolved through Animepahe API as "${resolvedAnime.title || resolvedAnime.name || title}".`
-      : "Animepahe API returned no playable HLS source for this episode.",
-  };
 }
 
 async function getMappedEpisodeId(animeId: number, episode: number) {
