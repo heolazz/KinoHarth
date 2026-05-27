@@ -98,12 +98,19 @@ function buildEpisodeItems(
     }
   });
 
-  const knownTotal = Math.max(
-    anime.episodes || 0,
-    anime.nextAiringEpisode?.episode ? anime.nextAiringEpisode.episode - 1 : 0,
-    streamingByNumber.size > 0 ? Math.max(...streamingByNumber.keys()) : 0,
-    metadataByNumber.size > 0 ? Math.max(...metadataByNumber.keys()) : 0
-  );
+  // If Anilist explicitly tells us the total episode count, trust it as the absolute truth.
+  // This prevents bugs where fuzzy TMDB metadata matching returns 12 episodes for a 1-episode Movie.
+  let knownTotal = 0;
+  
+  if (anime.episodes && anime.episodes > 0) {
+    knownTotal = anime.episodes;
+  } else {
+    knownTotal = Math.max(
+      anime.nextAiringEpisode?.episode ? anime.nextAiringEpisode.episode - 1 : 0,
+      streamingByNumber.size > 0 ? Math.max(...streamingByNumber.keys()) : 0,
+      metadataByNumber.size > 0 ? Math.max(...metadataByNumber.keys()) : 0
+    );
+  }
   const episodeNumbers =
     knownTotal > 0
       ? Array.from({ length: knownTotal }, (_, index) => index + 1)
