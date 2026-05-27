@@ -591,22 +591,32 @@ export async function getAnimeByStudio(studioId: number, page = 1, perPage = 24)
   // We can add proxy logic later if needed, but for now we call AniList directly
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
-      Page (page: $page, perPage: $perPage) {
-        pageInfo {
-          total
-          currentPage
-          lastPage
-          hasNextPage
-          perPage
-        }
-        media (studioId: $studioId, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
-          ${ANIME_FRAGMENT}
+      Studio(id: $studioId) {
+        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+          pageInfo {
+            total
+            currentPage
+            lastPage
+            hasNextPage
+            perPage
+          }
+          nodes {
+            ${ANIME_FRAGMENT}
+          }
         }
       }
     }
   `;
 
-  return fetchAniList<AnimePageResponse>(query, { studioId, page, perPage });
+  const data = await fetchAniList<{ Studio: { media: { pageInfo: any; nodes: any[] } } }>(query, { studioId, page, perPage });
+  
+  // Transform to match AnimePageResponse format
+  return {
+    Page: {
+      pageInfo: data.Studio?.media?.pageInfo,
+      media: data.Studio?.media?.nodes || [],
+    }
+  } as unknown as AnimePageResponse;
 }
 
 export async function searchAnime(searchTerm: string, page = 1, perPage = 20) {

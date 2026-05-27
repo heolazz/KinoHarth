@@ -433,22 +433,31 @@ export function getAnimeDetailBrowser(id: number) {
 export async function getAnimeByStudioBrowser(studioId: number, page = 1, perPage = 24) {
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
-      Page (page: $page, perPage: $perPage) {
-        pageInfo {
-          total
-          currentPage
-          lastPage
-          hasNextPage
-          perPage
-        }
-        media (studioId: $studioId, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
-          ${ANIME_FRAGMENT}
+      Studio(id: $studioId) {
+        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+          pageInfo {
+            total
+            currentPage
+            lastPage
+            hasNextPage
+            perPage
+          }
+          nodes {
+            ${ANIME_FRAGMENT}
+          }
         }
       }
     }
   `;
 
-  return fetchAniListBrowser<AnimePageResponse>(query, { studioId, page, perPage });
+  const data = await fetchAniListBrowser<{ Studio: { media: { pageInfo: any; nodes: any[] } } }>(query, { studioId, page, perPage });
+  
+  return {
+    Page: {
+      pageInfo: data.Studio?.media?.pageInfo,
+      media: data.Studio?.media?.nodes || [],
+    }
+  } as unknown as AnimePageResponse;
 }
 
 export function searchAnimeBrowser(searchTerm: string, page = 1, perPage = 20) {
