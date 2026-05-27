@@ -11,11 +11,11 @@ export async function generateMetadata({
   const { id } = await params;
   const studioId = parseInt(id, 10);
   const studio = POPULAR_STUDIOS.find((s) => s.id === studioId);
-  const title = studio ? \`\${studio.name} Anime\` : "Studio Anime";
+  const title = studio ? `${studio.name} Anime` : "Studio Anime";
 
   return {
-    title: \`\${title} - KinoHarth\`,
-    description: \`Watch popular anime by \${studio?.name || "this studio"} on KinoHarth.\`,
+    title: `${title} - KinoHarth`,
+    description: `Watch popular anime by ${studio?.name || "this studio"} on KinoHarth.`,
   };
 }
 

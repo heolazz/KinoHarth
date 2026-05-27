@@ -58,12 +58,12 @@ export function StudioClient({
         {studio?.cover && (
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: \`url(\${studio.cover})\` }}
+            style={{ backgroundImage: `url(${studio.cover})` }}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1c1c1c] via-[#1c1c1c]/80 to-[#1c1c1c]/30" />
         {studio?.color && (
-          <div className={\`absolute inset-0 bg-gradient-to-r \${studio.color} opacity-20\`} />
+          <div className={`absolute inset-0 bg-gradient-to-r ${studio.color} opacity-20`} />
         )}
         
         <div className="relative z-10 text-center px-4">
