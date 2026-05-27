@@ -1293,10 +1293,10 @@ export async function getStreamSource(
         context
       );
       
-      // Jika miruro gagal mendapatkan link video (hanya ada kiwi yang mati), otomatis fallback ke aniwatch
+      // Jika miruro gagal mendapatkan link video (hanya ada kiwi yang mati), otomatis fallback ke animepahe
       if (!miruroResult.url || miruroResult.type === "dummy") {
         try {
-          const fallbackResult = await getAniwatchStream(animeId, episode);
+          const fallbackResult = await getAnimepaheStream(animeId, episode);
           if (fallbackResult.url && fallbackResult.type !== "dummy") {
             return fallbackResult;
           }
