@@ -123,7 +123,7 @@ export function StudioClient({
         {/* Back Button */}
         <Link
           href="/"
-          className="absolute top-6 left-6 z-20 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-black/60 transition-all duration-300"
+          className="absolute top-20 md:top-24 left-4 md:left-8 lg:left-12 z-20 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-black/60 transition-all duration-300"
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline">Back to Home</span>
