@@ -589,7 +589,14 @@ export async function getAnimeDetail(id: number) {
 }
 
 export async function getAnimeByStudio(studioId: number, page = 1, perPage = 24) {
-  // We can add proxy logic later if needed, but for now we call AniList directly
+  // Try proxy first (runs on Vercel, not blocked by AniList)
+  const proxyData = await fetchKinoHarthAniListApi<AnimePageResponse>(
+    `studio/${studioId}`,
+    { page, perPage }
+  );
+  if (proxyData?.Page?.media?.length) return proxyData;
+
+  // Fallback: direct AniList query
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
       Studio(id: $studioId) {
