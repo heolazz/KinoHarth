@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { StudioClient } from "./client";
 import { getAnimeByStudio } from "@/services/anilist";
-import { POPULAR_STUDIOS } from "@/components/anime/studio-slider";
+import { POPULAR_STUDIOS } from "@/lib/constants/studios";
 
 export async function generateMetadata({
   params,
