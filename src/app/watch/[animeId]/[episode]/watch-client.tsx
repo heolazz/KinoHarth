@@ -286,6 +286,9 @@ export function WatchClient({
         group.end === activeEpisodeGroup.end,
     }));
 
+    const currentEpisodeItem = episodes.find((e) => e.number === safeEpisode);
+    const poster = currentEpisodeItem?.thumbnail || getFallbackThumbnail(anime);
+
     return {
       title,
       safeEpisode,
@@ -295,7 +298,7 @@ export function WatchClient({
       totalEpisodes: Math.max(...episodeNumbers),
       previousEpisode,
       nextEpisode,
-      poster: getFallbackThumbnail(anime),
+      poster,
     };
   }, [anime, episode, episodeMetadata]);
   const queryKey = searchParams.toString();
@@ -412,11 +415,7 @@ export function WatchClient({
             key={`${anime.id}-${model.safeEpisode}`}
             source={streamSource}
             title={`${model.title} episode ${model.safeEpisode}`}
-            fallbackPoster={
-              model.episodes.find((e) => e.number === model.safeEpisode)?.thumbnail ||
-              anime.bannerImage ||
-              anime.coverImage.extraLarge
-            }
+            fallbackPoster={model.poster}
             basePath={buildWatchPath(anime, model.safeEpisode)}
           />
 
