@@ -14,14 +14,6 @@ interface AnimeGridTabsProps {
 export function AnimeGridTabs({ newest, popular, topRated }: AnimeGridTabsProps) {
   const [activeTab, setActiveTab] = useState<"newest" | "popular" | "topRated">("newest");
   const [page, setPage] = useState(1);
-  const [cols, setCols] = useState(6);
-  
-  useEffect(() => {
-    const update = () => setCols(window.innerWidth < 480 ? 2 : 6);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
 
   const dataMap = {
     newest,
@@ -92,14 +84,8 @@ export function AnimeGridTabs({ newest, popular, topRated }: AnimeGridTabsProps)
         </div>
       </div>
 
-      {/* Grid — uses JS-detected columns for guaranteed iPad compatibility */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gap: cols === 2 ? "0.75rem" : "1rem",
-        }}
-      >
+      {/* Grid — Uses Tailwind CSS Grid for responsive layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
         {displayData.map((anime) => (
           <AnimeCard key={anime.id} anime={anime} variant="grid" />
         ))}

@@ -226,12 +226,12 @@ async function fetchKinoHarthAniListApi<T>(
       },
       headers: KINOHARTH_ANILIST_API_KEY
         ? {
-            Accept: "application/json",
-            "X-KinoHarth-Key": KINOHARTH_ANILIST_API_KEY,
-          }
+          Accept: "application/json",
+          "X-KinoHarth-Key": KINOHARTH_ANILIST_API_KEY,
+        }
         : {
-            Accept: "application/json",
-          },
+          Accept: "application/json",
+        },
     });
 
     if (!response.ok) {
@@ -412,11 +412,11 @@ export async function getNewSeasonAnime(page = 1, perPage = 12) {
     }
   `;
 
-  return fetchAniList<AnimePageResponse>(query, { 
-    page, 
-    perPage, 
-    season: currentSeason, 
-    seasonYear: currentYear 
+  return fetchAniList<AnimePageResponse>(query, {
+    page,
+    perPage,
+    season: currentSeason,
+    seasonYear: currentYear
   });
 }
 

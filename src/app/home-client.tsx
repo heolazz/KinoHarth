@@ -46,10 +46,10 @@ export function HomeClient({
   const [state, setState] = useState<HomeLoadState | null>(() =>
     initialData
       ? {
-          key: requestKey,
-          data: initialData,
-          error: null,
-        }
+        key: requestKey,
+        data: initialData,
+        error: null,
+      }
       : null
   );
 
@@ -140,37 +140,37 @@ export function HomeClient({
 
         <div className="space-y-16">
           <div id="trending" className="space-y-6 scroll-mt-28">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold tracking-tight text-white/95">
-              Trending Now
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold tracking-tight text-white/95">
+                Trending Now
+              </h2>
+            </div>
+            <div className="hide-scrollbar flex snap-x gap-4 overflow-x-auto pb-6">
+              {data.trendingAnime.map((anime, index) => (
+                <div
+                  key={anime.id}
+                  className="min-w-[200px] snap-start md:min-w-[220px] lg:min-w-[240px]"
+                >
+                  <AnimeCard anime={anime} variant="trending" rank={index + 1} />
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="hide-scrollbar flex snap-x gap-4 overflow-x-auto pb-6">
-            {data.trendingAnime.map((anime, index) => (
-              <div
-                key={anime.id}
-                className="min-w-[200px] snap-start md:min-w-[220px] lg:min-w-[240px]"
-              >
-                <AnimeCard anime={anime} variant="trending" rank={index + 1} />
-              </div>
-            ))}
+
+          <div id="discover" className="scroll-mt-28">
+            <AnimeGridTabs
+              newest={data.newSeasonAnime}
+              popular={data.popularAnime}
+              topRated={data.topRatedAnime}
+            />
           </div>
-        </div>
 
-        <div id="discover" className="scroll-mt-28">
-          <AnimeGridTabs 
-            newest={data.newSeasonAnime} 
-            popular={data.popularAnime} 
-            topRated={data.topRatedAnime} 
-          />
-        </div>
-
-        <div className="pt-6">
-          <AiringScheduleTabs
-            schedule={data.schedule}
-            initialDay={scheduleWindow.selectedDay}
-          />
-        </div>
+          <div className="pt-6">
+            <AiringScheduleTabs
+              schedule={data.schedule}
+              initialDay={scheduleWindow.selectedDay}
+            />
+          </div>
         </div>
       </section>
     </div>

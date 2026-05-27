@@ -293,8 +293,8 @@ export function getNewSeasonAnimeBrowser(page = 1, perPage = 12) {
     }
   `;
 
-  return fetchAniListBrowser<AnimePageResponse>(query, { 
-    page, 
+  return fetchAniListBrowser<AnimePageResponse>(query, {
+    page,
     perPage,
     season: currentSeason,
     seasonYear: currentYear
