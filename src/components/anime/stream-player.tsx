@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import {
@@ -145,6 +146,7 @@ export function StreamPlayer({
   fallbackPoster,
   basePath,
 }: StreamPlayerProps) {
+  const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<"category" | "provider" | null>(null);
   const current = buildCurrentOption(source);
   const streams = dedupeStreams([
@@ -199,6 +201,16 @@ export function StreamPlayer({
           : source.headers,
       }
     : null;
+
+  const handleStreamError = () => {
+    if (!selectedStream || streams.length <= 1) return;
+    const currentIndex = streams.findIndex((s) => s.url === selectedStream.url);
+    if (currentIndex !== -1 && currentIndex + 1 < streams.length) {
+      const nextStream = streams[currentIndex + 1];
+      const nextHref = buildStreamHref(basePath, source, nextStream.server);
+      router.replace(nextHref);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -261,7 +273,7 @@ export function StreamPlayer({
             allowFullScreen
           />
         ) : (
-          <HlsPlayer source={selectedSource} title={title} />
+          <HlsPlayer source={selectedSource} title={title} onErrorFallback={handleStreamError} />
         )}
       </div>
 

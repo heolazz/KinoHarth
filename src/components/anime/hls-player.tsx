@@ -8,13 +8,15 @@ import { StreamSource } from "@/lib/stream-providers";
 type HlsPlayerProps = {
   source: StreamSource;
   title: string;
+  onErrorFallback?: () => void;
 };
 
-export function HlsPlayer({ source, title }: HlsPlayerProps) {
+export function HlsPlayer({ source, title, onErrorFallback }: HlsPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setError(null);
     const video = videoRef.current;
 
     if (!video || !source.url) {
@@ -41,6 +43,9 @@ export function HlsPlayer({ source, title }: HlsPlayerProps) {
     hls.on(Hls.Events.ERROR, (_event, data) => {
       if (data.fatal) {
         setError("The stream could not be loaded. The source may have expired.");
+        if (onErrorFallback) {
+          onErrorFallback();
+        }
       }
     });
 
@@ -58,6 +63,12 @@ export function HlsPlayer({ source, title }: HlsPlayerProps) {
         playsInline
         poster={source.poster || undefined}
         title={title}
+        onError={() => {
+          setError("The stream could not be loaded. The source may have expired.");
+          if (onErrorFallback) {
+            onErrorFallback();
+          }
+        }}
       >
         {source.subtitles.map((subtitle) => (
           <track

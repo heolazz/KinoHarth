@@ -796,12 +796,12 @@ function getMiruroProviderRank(provider: string | undefined) {
   const preferred = [
     "ally",
     "bee",
-    "kiwi",
+    "zoro",
     "dune",
     "animekai",
     "hop",
-    "zoro",
     "allanime",
+    "kiwi",
   ];
   const index = preferred.indexOf(provider?.toLowerCase() || "");
 
@@ -960,27 +960,46 @@ function sortMiruroStreams(streams: MiruroWatchStream[]) {
   });
 }
 
-function getMiruroStreamOptions(streams: MiruroWatchStream[]): StreamOption[] {
+function getUniqueMiruroStreams(streams: MiruroWatchStream[]) {
+  const validStreams = sortMiruroStreams(
+    streams.filter((stream) => getMiruroStreamUrl(stream))
+  );
+
   const seenUrls = new Set<string>();
+  const nameCounts = new Map<string, number>();
 
-  return sortMiruroStreams(streams)
-    .flatMap((stream) => {
+  return validStreams
+    .filter((stream) => {
       const url = getMiruroStreamUrl(stream);
+      if (!url || seenUrls.has(url)) return false;
+      seenUrls.add(url);
+      return true;
+    })
+    .map((stream) => {
+      let serverName = getMiruroStreamLabel(stream);
+      const count = (nameCounts.get(serverName) || 0) + 1;
+      nameCounts.set(serverName, count);
 
-      if (!url || seenUrls.has(url)) {
-        return [];
+      if (count > 1) {
+        serverName = `${serverName} ${count}`;
       }
 
-      seenUrls.add(url);
-
-      return [{
-        url,
-        type: getMiruroStreamType(stream, url),
-        server: getMiruroStreamLabel(stream),
-        priority: stream.priority,
-        referer: stream.referer,
-      }];
+      return {
+        stream,
+        url: getMiruroStreamUrl(stream) as string,
+        uniqueServer: serverName,
+      };
     });
+}
+
+function getMiruroStreamOptions(streams: MiruroWatchStream[]): StreamOption[] {
+  return getUniqueMiruroStreams(streams).map(({ stream, url, uniqueServer }) => ({
+    url,
+    type: getMiruroStreamType(stream, url),
+    server: uniqueServer,
+    priority: stream.priority,
+    referer: stream.referer,
+  }));
 }
 
 function normalizeServerName(server: string | undefined) {
@@ -991,16 +1010,17 @@ function pickMiruroStream(
   streams: MiruroWatchStream[],
   preferredServer?: string
 ) {
-  const validStreams = sortMiruroStreams(
-    streams.filter((stream) => getMiruroStreamUrl(stream))
-  );
+  const uniqueStreams = getUniqueMiruroStreams(streams);
   const selectedServer = normalizeServerName(preferredServer);
 
-  return selectedServer
-    ? validStreams.find(
-        (stream) => normalizeServerName(getMiruroStreamLabel(stream)) === selectedServer
-      ) || null
-    : validStreams[0] || null;
+  if (selectedServer) {
+    const found = uniqueStreams.find(
+      ({ uniqueServer }) => normalizeServerName(uniqueServer) === selectedServer
+    );
+    if (found) return found.stream;
+  }
+
+  return uniqueStreams[0]?.stream || null;
 }
 
 function getMiruroSourceList(watchJson: MiruroWatchResponse) {
