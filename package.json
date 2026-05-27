@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
-    "@consumet/extensions": "^1.8.8",
     "@hookform/resolvers": "^5.2.2",
     "aniwatch": "^2.27.9",
     "class-variance-authority": "^0.7.1",

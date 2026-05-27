@@ -376,85 +376,9 @@ async function getAnimepaheStream(
   const data = await getAnimeDetail(animeId);
   const title = getTitle(data);
   const titles = getCandidateTitles(data);
+  const backendUrl = process.env.MIRURO_API_BASE_URL;
 
-  try {
-    const { ANIME } = await import("@consumet/extensions");
-    const animepahe = new ANIME.AnimePahe();
-
-    const query = titles[0] || title;
-    const searchRes = await animepahe.search(query);
-
-    const resolvedAnime = pickBestAnimepaheResult(
-      searchRes.results || [],
-      titles
-    );
-
-    if (!resolvedAnime?.id) {
-      return {
-        provider: "animepahe",
-        type: "dummy",
-        animeId,
-        episode,
-        title,
-        url: null,
-        poster: getPoster(data),
-        subtitles: [],
-        notice: `Consumet Animepahe could not resolve "${title}" from search results.`,
-      };
-    }
-
-    const info = await animepahe.fetchAnimeInfo(resolvedAnime.id);
-    const epMatch = info.episodes?.find((ep: any) => ep.number === episode);
-
-    if (!epMatch?.id) {
-      return {
-        provider: "animepahe",
-        type: "dummy",
-        animeId,
-        episode,
-        title,
-        url: null,
-        poster: getPoster(data),
-        resolvedAnime: {
-          id: resolvedAnime.id,
-          name: resolvedAnime.title || resolvedAnime.name || title,
-        },
-        subtitles: [],
-        notice: `Consumet Animepahe resolved "${title}", but episode ${episode} was not found.`,
-      };
-    }
-
-    const streamInfo = await animepahe.fetchEpisodeSources(epMatch.id);
-    const sources = streamInfo.sources || [];
-    
-    // Prefer 1080p, then 720p, then whatever is available
-    const source = 
-      sources.find((item: any) => item.quality === "1080p") || 
-      sources.find((item: any) => item.quality === "720p") || 
-      sources.find((item: any) => item.url) || 
-      sources[0];
-      
-    const url = source?.url || null;
-
-    return {
-      provider: "animepahe",
-      type: source?.isM3U8 || inferStreamType(url) === "hls" ? "hls" : inferStreamType(url),
-      animeId,
-      episode,
-      title,
-      url,
-      poster: getPoster(data),
-      resolvedAnime: {
-        id: resolvedAnime.id,
-        name: resolvedAnime.title || resolvedAnime.name || title,
-      },
-      subtitles: [], // Animepahe uses hardsubs usually
-      notice: url
-        ? `Resolved through Consumet Animepahe as "${resolvedAnime.title || resolvedAnime.name || title}".`
-        : "Consumet Animepahe returned no playable HLS source for this episode.",
-    };
-  } catch (error) {
-    console.error("Consumet Animepahe Error:", error);
+  if (!backendUrl) {
     return {
       provider: "animepahe",
       type: "dummy",
@@ -464,7 +388,74 @@ async function getAnimepaheStream(
       url: null,
       poster: getPoster(data),
       subtitles: [],
-      notice: `Consumet Animepahe Error: ${error instanceof Error ? error.message : "unknown error"}`,
+      notice: "MIRURO_API_BASE_URL is not set — cannot reach Animepahe Consumet endpoint.",
+    };
+  }
+
+  try {
+    const query = encodeURIComponent(titles[0] || title);
+    const endpoint = `${backendUrl}/api/v2/animepahe/stream?q=${query}&episode=${episode}`;
+    const response = await fetch(endpoint, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({})) as Record<string, unknown>;
+      return {
+        provider: "animepahe",
+        type: "dummy",
+        animeId,
+        episode,
+        title,
+        url: null,
+        poster: getPoster(data),
+        subtitles: [],
+        notice: `Animepahe API error ${response.status}: ${(errorBody as any)?.error || "unknown"}`,
+      };
+    }
+
+    const result = await response.json() as {
+      success: boolean;
+      data?: {
+        anime?: { id: string; title: string };
+        url: string | null;
+        quality: string | null;
+        isM3U8: boolean;
+        sources: { url: string; quality: string; isM3U8: boolean }[];
+      };
+    };
+
+    const url = result.data?.url || null;
+
+    return {
+      provider: "animepahe",
+      type: result.data?.isM3U8 || inferStreamType(url) === "hls" ? "hls" : inferStreamType(url),
+      animeId,
+      episode,
+      title,
+      url,
+      poster: getPoster(data),
+      resolvedAnime: result.data?.anime
+        ? { id: result.data.anime.id, name: result.data.anime.title }
+        : undefined,
+      subtitles: [],
+      notice: url
+        ? `Resolved through Consumet Animepahe as "${result.data?.anime?.title || title}".`
+        : "Consumet Animepahe returned no playable HLS source for this episode.",
+    };
+  } catch (error) {
+    console.error("Animepahe Stream Error:", error);
+    return {
+      provider: "animepahe",
+      type: "dummy",
+      animeId,
+      episode,
+      title,
+      url: null,
+      poster: getPoster(data),
+      subtitles: [],
+      notice: `Animepahe Error: ${error instanceof Error ? error.message : "unknown error"}`,
     };
   }
 }
