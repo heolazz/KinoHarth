@@ -412,7 +412,11 @@ export function WatchClient({
             key={`${anime.id}-${model.safeEpisode}`}
             source={streamSource}
             title={`${model.title} episode ${model.safeEpisode}`}
-            fallbackPoster={anime.bannerImage || anime.coverImage.extraLarge}
+            fallbackPoster={
+              model.episodes.find((e) => e.number === model.safeEpisode)?.thumbnail ||
+              anime.bannerImage ||
+              anime.coverImage.extraLarge
+            }
             basePath={buildWatchPath(anime, model.safeEpisode)}
           />
 
