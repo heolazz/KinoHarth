@@ -14,9 +14,7 @@ export type AnimeMetadataResponse = {
 };
 
 export async function getAnimeMetadataBrowser(animeId: number) {
-  const response = await fetch(`/api/anime-metadata/${animeId}`, {
-    cache: "force-cache",
-  });
+  const response = await fetch(`/api/anime-metadata/${animeId}`);
 
   if (!response.ok) {
     throw new Error(`Anime metadata responded with ${response.status}`);
