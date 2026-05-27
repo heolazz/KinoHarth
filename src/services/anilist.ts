@@ -613,8 +613,8 @@ export async function getAnimeByStudio(studioId: number, page = 1, perPage = 24)
   // Transform to match AnimePageResponse format
   return {
     Page: {
-      pageInfo: data.Studio?.media?.pageInfo,
-      media: data.Studio?.media?.nodes || [],
+      pageInfo: data?.Studio?.media?.pageInfo,
+      media: data?.Studio?.media?.nodes || [],
     }
   } as unknown as AnimePageResponse;
 }

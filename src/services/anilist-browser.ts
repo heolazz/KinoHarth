@@ -454,8 +454,8 @@ export async function getAnimeByStudioBrowser(studioId: number, page = 1, perPag
   
   return {
     Page: {
-      pageInfo: data.Studio?.media?.pageInfo,
-      media: data.Studio?.media?.nodes || [],
+      pageInfo: data?.Studio?.media?.pageInfo,
+      media: data?.Studio?.media?.nodes || [],
     }
   } as unknown as AnimePageResponse;
 }
