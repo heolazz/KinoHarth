@@ -18,7 +18,16 @@ export function StudioClient({
   initialData?: AnimePageResponse | null;
 }) {
   const [page, setPage] = useState(1);
-  const [results, setResults] = useState(initialData?.Page?.media || []);
+  const [results, setResults] = useState(() => {
+    // Deduplicate initial data if any
+    const media = initialData?.Page?.media || [];
+    const seen = new Set();
+    return media.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  });
   const [hasNextPage, setHasNextPage] = useState(
     initialData?.Page?.pageInfo?.hasNextPage || false
   );
@@ -35,7 +44,11 @@ export function StudioClient({
       .then((data) => {
         if (cancelled) return;
         const media = data.Page?.media || [];
-        setResults((prev) => [...prev, ...media]);
+        setResults((prev) => {
+          const existingIds = new Set(prev.map((item) => item.id));
+          const newMedia = media.filter((item) => !existingIds.has(item.id));
+          return [...prev, ...newMedia];
+        });
         setHasNextPage(data.Page?.pageInfo?.hasNextPage || false);
         setIsLoading(false);
       })

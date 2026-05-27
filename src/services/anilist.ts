@@ -592,7 +592,7 @@ export async function getAnimeByStudio(studioId: number, page = 1, perPage = 24)
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
       Studio(id: $studioId) {
-        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true) {
           pageInfo {
             total
             currentPage

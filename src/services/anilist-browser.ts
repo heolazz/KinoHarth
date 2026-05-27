@@ -434,7 +434,7 @@ export async function getAnimeByStudioBrowser(studioId: number, page = 1, perPag
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
       Studio(id: $studioId) {
-        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true) {
           pageInfo {
             total
             currentPage
