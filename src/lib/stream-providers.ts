@@ -1284,7 +1284,7 @@ export async function getStreamSource(
     }
 
     if (provider === "miruro") {
-      return getMiruroStream(
+      const miruroResult = await getMiruroStream(
         animeId,
         episode,
         streamServer,
@@ -1292,6 +1292,20 @@ export async function getStreamSource(
         episodeCategory,
         context
       );
+      
+      // Jika miruro gagal mendapatkan link video (hanya ada kiwi yang mati), otomatis fallback ke aniwatch
+      if (!miruroResult.url || miruroResult.type === "dummy") {
+        try {
+          const fallbackResult = await getAniwatchStream(animeId, episode);
+          if (fallbackResult.url && fallbackResult.type !== "dummy") {
+            return fallbackResult;
+          }
+        } catch (e) {
+          // Abaikan error fallback dan kembalikan result asli miruro
+        }
+      }
+
+      return miruroResult;
     }
   } catch (error) {
     const fallback = await getDummyStream(animeId, episode, context);
