@@ -10,6 +10,7 @@ import { AnimeGridTabs } from "@/components/anime/anime-grid-tabs";
 import { AnimeError, AnimeLoading } from "@/components/anime/anime-loading";
 import { ContinueWatching } from "@/components/anime/continue-watching";
 import { HeroSlider } from "@/components/anime/hero-slider";
+import { StudioSlider } from "@/components/anime/studio-slider";
 import { UpcomingSlider } from "@/components/anime/upcoming-slider";
 import type { AiringScheduleItem, Anime } from "@/services/anilist";
 import {
@@ -145,6 +146,8 @@ export function HomeClient({
         </div>
 
         <div className="space-y-16">
+          <StudioSlider />
+
           <div id="trending" className="space-y-6 scroll-mt-28">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold tracking-tight text-white/95">
