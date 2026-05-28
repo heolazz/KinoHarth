@@ -370,6 +370,13 @@ export function getAiringScheduleBrowser({
     perPage,
     airingAtGreater,
     airingAtLesser,
+  }).then(data => {
+    if (data?.Page?.airingSchedules) {
+      data.Page.airingSchedules = data.Page.airingSchedules.filter(
+        (schedule) => !schedule.media.isAdult && !schedule.media.genres?.includes("Hentai")
+      );
+    }
+    return data;
   });
 }
 

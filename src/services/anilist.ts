@@ -480,6 +480,11 @@ export async function getAiringSchedule({
   );
 
   if (KINOHARTH_ANILIST_API_BASE_URL) {
+    if (proxyData?.Page?.airingSchedules) {
+      proxyData.Page.airingSchedules = proxyData.Page.airingSchedules.filter(
+        (schedule) => !schedule.media.isAdult && !schedule.media.genres?.includes("Hentai")
+      );
+    }
     return proxyData;
   }
 
@@ -515,12 +520,20 @@ export async function getAiringSchedule({
     }
   `;
 
-  return fetchAniList<AiringScheduleResponse>(query, {
+  const data = await fetchAniList<AiringScheduleResponse>(query, {
     page,
     perPage,
     airingAtGreater,
     airingAtLesser,
   });
+  
+  if (data?.Page?.airingSchedules) {
+    data.Page.airingSchedules = data.Page.airingSchedules.filter(
+      (schedule) => !schedule.media.isAdult && !schedule.media.genres?.includes("Hentai")
+    );
+  }
+  
+  return data;
 }
 
 export async function getAnimeDetail(id: number) {
