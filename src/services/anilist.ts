@@ -339,7 +339,7 @@ export async function getTrendingAnime(page = 1, perPage = 20) {
           hasNextPage
           perPage
         }
-        media (sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+        media (sort: TRENDING_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -362,7 +362,7 @@ export async function getPopularAnime(page = 1, perPage = 20) {
   const query = `
     query ($page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
-        media (sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+        media (sort: POPULARITY_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -385,7 +385,7 @@ export async function getTopRatedAnime(page = 1, perPage = 12) {
   const query = `
     query ($page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
-        media (sort: [SCORE_DESC, POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (sort: [SCORE_DESC, POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -406,7 +406,7 @@ export async function getNewSeasonAnime(page = 1, perPage = 12) {
   const query = `
     query ($page: Int, $perPage: Int, $season: MediaSeason, $seasonYear: Int) {
       Page (page: $page, perPage: $perPage) {
-        media (season: $season, seasonYear: $seasonYear, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (season: $season, seasonYear: $seasonYear, sort: [POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -425,7 +425,7 @@ export async function getUpcomingAnime(page = 1, perPage = 10) {
   const query = `
     query ($page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
-        media (status: NOT_YET_RELEASED, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (status: NOT_YET_RELEASED, sort: [POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -448,7 +448,7 @@ export async function getRecentlyUpdatedAnime(page = 1, perPage = 12) {
   const query = `
     query ($page: Int, $perPage: Int) {
       Page (page: $page, perPage: $perPage) {
-        media (sort: UPDATED_AT_DESC, type: ANIME, isAdult: false) {
+        media (sort: UPDATED_AT_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -600,7 +600,7 @@ export async function getAnimeByStudio(studioId: number, page = 1, perPage = 24)
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
       Studio(id: $studioId) {
-        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true) {
+        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true, isAdult: false, genre_not_in: ["Hentai"]) {
           pageInfo {
             total
             currentPage
@@ -645,7 +645,7 @@ export async function searchAnime(searchTerm: string, page = 1, perPage = 20) {
           currentPage
           hasNextPage
         }
-        media (search: $search, sort: [SEARCH_MATCH, POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (search: $search, sort: [SEARCH_MATCH, POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -724,7 +724,7 @@ export async function getAnimeCatalog({
           seasonYear: $seasonYear,
           sort: $sort,
           type: ANIME,
-          isAdult: false
+          isAdult: false, genre_not_in: ["Hentai"]
         ) {
           ${ANIME_FRAGMENT}
         }

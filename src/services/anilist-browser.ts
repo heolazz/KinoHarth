@@ -195,7 +195,7 @@ export function getTrendingAnimeBrowser(page = 1, perPage = 20) {
           hasNextPage
           perPage
         }
-        media (sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+        media (sort: TRENDING_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -216,7 +216,7 @@ export function getPopularAnimeBrowser(page = 1, perPage = 20) {
           hasNextPage
           perPage
         }
-        media (sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+        media (sort: POPULARITY_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -237,7 +237,7 @@ export function getTopRatedAnimeBrowser(page = 1, perPage = 12) {
           hasNextPage
           perPage
         }
-        media (sort: [SCORE_DESC, POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (sort: [SCORE_DESC, POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -258,7 +258,7 @@ export function getRecentlyUpdatedAnimeBrowser(page = 1, perPage = 12) {
           hasNextPage
           perPage
         }
-        media (sort: UPDATED_AT_DESC, type: ANIME, isAdult: false) {
+        media (sort: UPDATED_AT_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -286,7 +286,7 @@ export function getNewSeasonAnimeBrowser(page = 1, perPage = 12) {
           hasNextPage
           perPage
         }
-        media (season: $season, seasonYear: $seasonYear, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (season: $season, seasonYear: $seasonYear, sort: [POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -312,7 +312,7 @@ export function getUpcomingAnimeBrowser(page = 1, perPage = 10) {
           hasNextPage
           perPage
         }
-        media (status: NOT_YET_RELEASED, sort: [POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (status: NOT_YET_RELEASED, sort: [POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -434,7 +434,7 @@ export async function getAnimeByStudioBrowser(studioId: number, page = 1, perPag
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
       Studio(id: $studioId) {
-        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true) {
+        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true, isAdult: false, genre_not_in: ["Hentai"]) {
           pageInfo {
             total
             currentPage
@@ -469,7 +469,7 @@ export function searchAnimeBrowser(searchTerm: string, page = 1, perPage = 20) {
           currentPage
           hasNextPage
         }
-        media (search: $search, sort: [SEARCH_MATCH, POPULARITY_DESC], type: ANIME, isAdult: false) {
+        media (search: $search, sort: [SEARCH_MATCH, POPULARITY_DESC], type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
           ${ANIME_FRAGMENT}
         }
       }
@@ -533,7 +533,7 @@ export function getAnimeCatalogBrowser({
           seasonYear: $seasonYear,
           sort: $sort,
           type: ANIME,
-          isAdult: false
+          isAdult: false, genre_not_in: ["Hentai"]
         ) {
           ${ANIME_FRAGMENT}
         }
