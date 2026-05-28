@@ -28,30 +28,43 @@ export function StudioSlider() {
               style={{ backgroundImage: `url(${studio.cover})` }}
             />
             
+            {/* Base Dark Overlay + Blur */}
+            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors duration-500 backdrop-blur-[1px] group-hover:backdrop-blur-[3px]" />
+
             {/* Color Gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-t ${studio.color} to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-90`} />
+            <div className={`absolute inset-0 bg-gradient-to-t ${studio.color} to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-80`} />
             
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent group-hover:from-black/50 group-hover:via-black/10 transition-all duration-300" />
+            {/* Inner Glass Border */}
+            <div className="absolute inset-0 border border-white/10 rounded-xl group-hover:border-white/20 transition-colors duration-500 z-10" />
             
-            {/* Subtle shimmer on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+            {/* Shimmer / Sweep Shine Effect */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-tr from-transparent via-white/5 to-transparent z-10" />
+            <div className="absolute inset-0 -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/10 to-transparent z-10 skew-x-12" />
             
             {/* Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-3">
-              <span className="text-base md:text-xl lg:text-2xl font-black text-white tracking-wider uppercase text-center drop-shadow-lg transition-transform duration-300 group-hover:scale-105">
-                {studio.logoText}
-              </span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-20">
+              {studio.logoImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  src={studio.logoImage} 
+                  alt={`${studio.name} logo`}
+                  className="max-h-[2.5rem] md:max-h-[3.5rem] w-auto max-w-[85%] object-contain transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-3 drop-shadow-2xl filter brightness-0 invert"
+                />
+              ) : (
+                <span className="text-lg md:text-2xl font-black text-white tracking-widest uppercase text-center drop-shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-3">
+                  {studio.logoText}
+                </span>
+              )}
               
-              {/* Explore arrow — visible on hover */}
-              <div className="mt-2 flex items-center gap-1 text-xs text-white/0 group-hover:text-white/80 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                <span className="font-medium">Explore</span>
-                <ChevronRight className="h-3 w-3" />
+              {/* Explore Pill */}
+              <div className="absolute bottom-4 flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-xs font-semibold text-white/90 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 shadow-2xl">
+                <span>Explore</span>
+                <ChevronRight className="h-3.5 w-3.5" />
               </div>
             </div>
 
-            {/* Bottom accent line */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+            {/* Bottom accent glow */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 bg-white/50 group-hover:w-1/3 transition-all duration-700 shadow-[0_0_8px_2px_rgba(255,255,255,0.3)] z-20" />
           </Link>
         ))}
       </div>
