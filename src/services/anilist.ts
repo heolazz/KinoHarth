@@ -613,7 +613,7 @@ export async function getAnimeByStudio(studioId: number, page = 1, perPage = 24)
   const query = `
     query ($studioId: Int, $page: Int, $perPage: Int) {
       Studio(id: $studioId) {
-        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true, isAdult: false, genre_not_in: ["Hentai"]) {
+        media(page: $page, perPage: $perPage, sort: POPULARITY_DESC, isMain: true) {
           pageInfo {
             total
             currentPage
@@ -631,11 +631,14 @@ export async function getAnimeByStudio(studioId: number, page = 1, perPage = 24)
 
   const data = await fetchAniList<{ Studio: { media: { pageInfo: any; nodes: any[] } } }>(query, { studioId, page, perPage });
   
+  let nodes = data?.Studio?.media?.nodes || [];
+  nodes = nodes.filter((node: any) => !node.isAdult && !node.genres?.includes("Hentai"));
+
   // Transform to match AnimePageResponse format
   return {
     Page: {
       pageInfo: data?.Studio?.media?.pageInfo,
-      media: data?.Studio?.media?.nodes || [],
+      media: nodes,
     }
   } as unknown as AnimePageResponse;
 }
