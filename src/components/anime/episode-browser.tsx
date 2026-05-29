@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Play, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { getProxiedImageUrl } from "@/lib/utils";
 
 export type EpisodeBrowserItem = {
   number: number;
@@ -101,7 +102,7 @@ export function EpisodeBrowser({ episodes }: { episodes: EpisodeBrowserItem[] })
             >
               <div className="relative aspect-video overflow-hidden bg-black/30">
                 <img
-                  src={episode.thumbnail}
+                  src={getProxiedImageUrl(episode.thumbnail)}
                   alt={episode.title}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"

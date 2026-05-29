@@ -10,6 +10,7 @@ import { EpisodeBrowser } from "@/components/anime/episode-browser";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buildWatchPath } from "@/lib/watch-path";
+import { getProxiedImageUrl } from "@/lib/utils";
 import type { Anime, AnimeStreamingEpisode } from "@/services/anilist";
 import type { AnimeMetadataResponse } from "@/services/anime-metadata";
 import { getAnimeMetadataBrowser } from "@/services/anime-metadata";
@@ -383,7 +384,7 @@ export function AnimeDetailClient({
                   <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
                   <div className="absolute bottom-4 inset-x-0 flex justify-center px-4 pointer-events-none">
                     <img
-                      src={episodeMetadata.tmdbLogo}
+                      src={getProxiedImageUrl(episodeMetadata.tmdbLogo)}
                       alt={`${title} logo`}
                       className="max-h-12 w-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] transform transition-transform duration-300 group-hover:scale-105"
                     />

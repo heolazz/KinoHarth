@@ -22,3 +22,15 @@ export function getScheduleWindow(dayParam?: string) {
     selectedDay,
   };
 }
+
+export function getProxiedImageUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  
+  // Do not proxy if it's an AniList image (which is already fast and unblocked) 
+  // or if it's already proxied.
+  if (url.includes("s4.anilist.co") || url.includes("wsrv.nl")) {
+    return url;
+  }
+  
+  return `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+}
