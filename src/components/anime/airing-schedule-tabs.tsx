@@ -46,7 +46,13 @@ export function AiringScheduleTabs({
   const [selectedDay, setSelectedDay] = useState(initialDay);
   const [scheduleData, setScheduleData] = useState(initialSchedule);
   const [loading, setLoading] = useState(false);
-  const today = new Date().getDay();
+  const [mounted, setMounted] = useState(false);
+  const [today, setToday] = useState<number>(0);
+
+  useEffect(() => {
+    setMounted(true);
+    setToday(new Date().getDay());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,7 +119,7 @@ export function AiringScheduleTabs({
             >
               <span className="font-bold md:hidden">{day.short}</span>
               <span className="hidden font-bold md:inline">{day.label}</span>
-              {isToday && (
+              {mounted && isToday && (
                 <span
                   className={`absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full ${
                     isActive ? "bg-black/30" : "bg-emerald-400/60"
@@ -170,7 +176,7 @@ export function AiringScheduleTabs({
                         <CalendarClock className="h-3 w-3" />
                         Ep {item.episode}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-white/45">
+                      <span className="inline-flex items-center gap-1 text-xs text-white/45" suppressHydrationWarning>
                         <Clock className="h-3 w-3" />
                         {formatScheduleTime(item.airingAt)}
                       </span>

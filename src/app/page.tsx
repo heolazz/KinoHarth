@@ -9,13 +9,10 @@ import {
   getUpcomingAnime,
 } from "@/services/anilist";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ day?: string }>;
-}) {
-  const params = await searchParams;
-  const scheduleWindow = getScheduleWindow(params.day);
+export const revalidate = 3600;
+
+export default async function Home() {
+  const scheduleWindow = getScheduleWindow();
   const [trending, popular, newSeason, topRated, upcoming, schedule] = await Promise.all([
     getTrendingAnime(1, 10),
     getPopularAnime(1, 48),
@@ -32,7 +29,6 @@ export default async function Home({
 
   return (
     <HomeClient
-      day={params.day}
       initialData={{
         trendingAnime: trending?.Page?.media || [],
         popularAnime: popular?.Page?.media || [],

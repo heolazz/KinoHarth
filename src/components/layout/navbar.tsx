@@ -104,7 +104,7 @@ export function Navbar() {
             >
               <SheetHeader className="border-b border-white/10">
                 <SheetTitle className="flex items-center gap-2 text-white">
-                  <Image src="/logo2.png" alt="KinoHarth Logo" width={200} height={60} className="w-auto h-20 object-contain" unoptimized />
+                  <Image src="/logo2.png" alt="KinoHarth Logo" width={200} height={60} className="w-auto h-20 object-contain" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2 px-4">
@@ -154,7 +154,6 @@ export function Navbar() {
               width={200}
               height={120}
               className="w-[120px] h-auto mt-2 object-contain transition-opacity duration-300 group-hover:opacity-90"
-              unoptimized
             />
           </Link>
 

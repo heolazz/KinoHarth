@@ -476,7 +476,7 @@ export function AnimeDetailClient({
                     <p className="text-xl font-bold text-white">
                       Episode {nextAiring.episode}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground" suppressHydrationWarning>
                       {formatAiringDate(nextAiring.airingAt)} (
                       {formatTimeUntilAiring(nextAiring.timeUntilAiring)})
                     </p>

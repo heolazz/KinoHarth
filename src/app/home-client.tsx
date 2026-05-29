@@ -4,14 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Clapperboard, ListVideo, Radio } from "lucide-react";
 
-import { AiringScheduleTabs } from "@/components/anime/airing-schedule-tabs";
+import dynamic from "next/dynamic";
 import { AnimeCard } from "@/components/anime/anime-card";
-import { AnimeGridTabs } from "@/components/anime/anime-grid-tabs";
 import { AnimeError, AnimeLoading } from "@/components/anime/anime-loading";
 import { ContinueWatching } from "@/components/anime/continue-watching";
 import { HeroSlider } from "@/components/anime/hero-slider";
-import { StudioSlider } from "@/components/anime/studio-slider";
-import { UpcomingSlider } from "@/components/anime/upcoming-slider";
+
+const StudioSlider = dynamic(() => import("@/components/anime/studio-slider").then((mod) => mod.StudioSlider));
+const AnimeGridTabs = dynamic(() => import("@/components/anime/anime-grid-tabs").then((mod) => mod.AnimeGridTabs));
+const AiringScheduleTabs = dynamic(() => import("@/components/anime/airing-schedule-tabs").then((mod) => mod.AiringScheduleTabs));
+const UpcomingSlider = dynamic(() => import("@/components/anime/upcoming-slider").then((mod) => mod.UpcomingSlider));
 import type { AiringScheduleItem, Anime } from "@/services/anilist";
 import {
   getAiringScheduleBrowser,

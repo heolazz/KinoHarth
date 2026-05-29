@@ -14,7 +14,6 @@ export function Footer() {
                 width={200}
                 height={100}
                 className="w-auto h-32 object-contain"
-                unoptimized
               />
             </Link>
             <p className="text-white/60 text-sm max-w-sm mb-6 leading-relaxed">
@@ -43,7 +42,7 @@ export function Footer() {
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between border-t border-white/5 mt-12 pt-8 text-sm text-white/60">
-          <p>© {new Date().getFullYear()} KinoHarth. All rights reserved.</p>
+          <p suppressHydrationWarning>© {new Date().getFullYear()} KinoHarth. All rights reserved.</p>
           <p className="flex items-center gap-1 mt-4 md:mt-0">
             Made by Harth
           </p>
