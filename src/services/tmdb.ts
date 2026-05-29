@@ -225,3 +225,47 @@ export async function getTmdbAnimeLogo(tmdbId: number, isMovie: boolean = false)
   }
   return logo;
 }
+
+export async function searchTmdb(query: string, isMovie: boolean = false): Promise<number | null> {
+  const token = process.env.TMDB_ACCESS_TOKEN;
+  if (!token || !query) return null;
+
+  const url = new URL(`${TMDB_API_URL}/search/${isMovie ? "movie" : "tv"}`);
+  url.searchParams.set("query", query);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      next: { revalidate: 60 * 60 * 24 },
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      return data.results[0].id;
+    }
+    
+    // If not found in primary format, try the other
+    const fallbackUrl = new URL(`${TMDB_API_URL}/search/${isMovie ? "tv" : "movie"}`);
+    fallbackUrl.searchParams.set("query", query);
+    
+    const fallbackResponse = await fetch(fallbackUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      next: { revalidate: 60 * 60 * 24 },
+    });
+    
+    if (!fallbackResponse.ok) return null;
+    
+    const fallbackData = await fallbackResponse.json();
+    return fallbackData.results?.[0]?.id || null;
+  } catch {
+    return null;
+  }
+}
