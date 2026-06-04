@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -34,6 +34,17 @@ export function Navbar() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchPathname, setMobileSearchPathname] = useState(pathname);
   const isMobileSearchVisible = isMobileSearchOpen && mobileSearchPathname === pathname;
+  const router = useRouter();
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const q = formData.get("q");
+    if (q) {
+      router.push(`/search?q=${encodeURIComponent(q as string)}`);
+      setIsMobileSearchOpen(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +66,7 @@ export function Navbar() {
       {/* Mobile Search Overlay */}
       {isMobileSearchVisible && (
         <div className="absolute inset-0 z-20 flex items-center px-4 bg-[#141414] animate-in slide-in-from-top-2 fade-in duration-200 md:hidden">
-          <form action="/search" className="flex items-center w-full gap-2">
+          <form onSubmit={handleSearchSubmit} className="flex items-center w-full gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -118,7 +129,6 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      prefetch={false}
                       className={cn(
                         "rounded-xl px-3 py-3 text-sm font-semibold transition-colors",
                         isActive
@@ -147,7 +157,7 @@ export function Navbar() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" prefetch={false} className="flex items-center group">
+          <Link href="/" className="flex items-center group">
             <Image
               src="/logo2.png"
               alt="KinoHarth Logo"
@@ -167,7 +177,6 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  prefetch={false}
                   className={cn(
                     "relative text-sm font-medium transition-colors hover:text-white group py-1 tracking-wide",
                     isActive ? "text-white" : "text-white/60"
@@ -197,7 +206,7 @@ export function Navbar() {
         </div>
 
         <form
-          action="/search"
+          onSubmit={handleSearchSubmit}
           className="flex-1 max-w-sm hidden md:block ml-auto mr-8"
         >
           <div className="relative group">
