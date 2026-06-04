@@ -5,6 +5,7 @@ import { parseEpisodeSegment } from "@/lib/watch-path";
 import { WatchClient } from "./watch-client";
 
 import { getAnimeDetail } from "@/services/anilist";
+import { getAnimeMetadataServer } from "@/services/anime-metadata";
 
 export async function generateMetadata({
   params,
@@ -65,5 +66,20 @@ export default async function WatchPage({
     notFound();
   }
 
-  return <WatchClient animeId={animeIdNumber} episode={episodeNumber} />;
+  const detail = await getAnimeDetail(animeIdNumber).catch(() => null);
+  const metadata = await getAnimeMetadataServer(
+    animeIdNumber,
+    detail?.Media?.format,
+    detail?.Media?.title.english,
+    detail?.Media?.title.romaji
+  ).catch(() => null);
+
+  return (
+    <WatchClient
+      animeId={animeIdNumber}
+      episode={episodeNumber}
+      initialAnime={detail?.Media || undefined}
+      initialMetadata={metadata}
+    />
+  );
 }

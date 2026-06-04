@@ -256,9 +256,11 @@ function getYoutubeEmbedUrl(trailer: { id: string; site: string } | null | undef
 export function AnimeDetailClient({
   id,
   initialAnime,
+  initialMetadata = null,
 }: {
   id: number;
   initialAnime?: AnimeDetail | null;
+  initialMetadata?: AnimeMetadataResponse | null;
 }) {
   const [state, setState] = useState<AnimeDetailState | null>(() =>
     initialAnime
@@ -269,7 +271,9 @@ export function AnimeDetailClient({
         }
       : null
   );
-  const [metadataState, setMetadataState] = useState<MetadataState | null>(null);
+  const [metadataState, setMetadataState] = useState<MetadataState | null>(() => 
+    initialMetadata ? { key: id, metadata: initialMetadata } : null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -307,28 +311,31 @@ export function AnimeDetailClient({
   useEffect(() => {
     let cancelled = false;
 
-    getAnimeMetadataBrowser(id)
-      .then((metadata) => {
-        if (!cancelled) {
-          setMetadataState({
-            key: id,
-            metadata,
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setMetadataState({
-            key: id,
-            metadata: null,
-          });
-        }
-      });
+    // Only fetch metadata if it wasn't provided via SSR
+    if (!initialMetadata) {
+      getAnimeMetadataBrowser(id)
+        .then((metadata) => {
+          if (!cancelled) {
+            setMetadataState({
+              key: id,
+              metadata,
+            });
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setMetadataState({
+              key: id,
+              metadata: null,
+            });
+          }
+        });
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, initialMetadata]);
 
   const episodeMetadata =
     metadataState?.key === id ? metadataState.metadata : null;

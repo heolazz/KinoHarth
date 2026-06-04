@@ -195,37 +195,47 @@ function buildFallbackSource(anime: Anime, episode: number): StreamSource {
 export function WatchClient({
   animeId,
   episode,
+  initialAnime,
+  initialMetadata = null,
 }: {
   animeId: number;
   episode: number;
+  initialAnime?: WatchAnime | null;
+  initialMetadata?: AnimeMetadataResponse | null;
 }) {
   const searchParams = useSearchParams();
-  const [state, setState] = useState<WatchState | null>(null);
+  const [state, setState] = useState<WatchState | null>(() =>
+    initialAnime ? { key: animeId, anime: initialAnime, error: null } : null
+  );
   const [streamState, setStreamState] = useState<StreamLoadState | null>(null);
-  const [metadataState, setMetadataState] = useState<MetadataState | null>(null);
+  const [metadataState, setMetadataState] = useState<MetadataState | null>(() =>
+    initialMetadata ? { key: animeId, metadata: initialMetadata } : null
+  );
 
   useEffect(() => {
     let cancelled = false;
 
-    getAnimeDetailBrowser(animeId)
-      .then((data) => {
-        if (cancelled) return;
-        if (!data.Media) throw new Error("Anime detail was not found.");
-        setState({
-          key: animeId,
-          anime: data.Media as WatchAnime,
-          error: null,
-        });
-      })
-      .catch((caught) => {
-        if (!cancelled) {
+    if (!initialAnime) {
+      getAnimeDetailBrowser(animeId)
+        .then((data) => {
+          if (cancelled) return;
+          if (!data.Media) throw new Error("Anime detail was not found.");
           setState({
             key: animeId,
-            anime: null,
-            error: caught instanceof Error ? caught.message : String(caught),
+            anime: data.Media as WatchAnime,
+            error: null,
           });
-        }
-      });
+        })
+        .catch((caught) => {
+          if (!cancelled) {
+            setState({
+              key: animeId,
+              anime: null,
+              error: caught instanceof Error ? caught.message : String(caught),
+            });
+          }
+        });
+    }
 
     return () => {
       cancelled = true;
@@ -240,23 +250,26 @@ export function WatchClient({
   useEffect(() => {
     let cancelled = false;
 
-    getAnimeMetadataBrowser(animeId)
-      .then((metadata) => {
-        if (!cancelled) {
-          setMetadataState({
-            key: animeId,
-            metadata,
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setMetadataState({
-            key: animeId,
-            metadata: null,
-          });
-        }
-      });
+    // Only fetch metadata if it wasn't provided via SSR
+    if (!initialMetadata) {
+      getAnimeMetadataBrowser(animeId)
+        .then((metadata) => {
+          if (!cancelled) {
+            setMetadataState({
+              key: animeId,
+              metadata,
+            });
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setMetadataState({
+              key: animeId,
+              metadata: null,
+            });
+          }
+        });
+    }
 
     return () => {
       cancelled = true;

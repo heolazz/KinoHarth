@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getAnimeDetail } from "@/services/anilist";
+import { getAnimeMetadataServer } from "@/services/anime-metadata";
 import { AnimeDetailClient, type AnimeDetail } from "./anime-detail-client";
 
 export async function generateMetadata({
@@ -58,10 +59,18 @@ export default async function AnimeDetailPage({
     notFound();
   }
 
+  const metadata = await getAnimeMetadataServer(
+    animeId,
+    detail.Media.format,
+    detail.Media.title.english,
+    detail.Media.title.romaji
+  ).catch(() => null);
+
   return (
     <AnimeDetailClient
       id={animeId}
       initialAnime={detail.Media as AnimeDetail}
+      initialMetadata={metadata}
     />
   );
 }
