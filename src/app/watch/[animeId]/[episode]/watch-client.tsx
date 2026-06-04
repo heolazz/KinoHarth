@@ -161,11 +161,17 @@ function buildEpisodeItems(
       const streamingEpisode = streamingByNumber.get(number);
       const metadataEpisode = metadataByNumber.get(number);
 
+      const nextAiring = anime.nextAiringEpisode;
+      const isUnreleased = nextAiring ? number >= nextAiring.episode : false;
+      const airingAt = nextAiring && number === nextAiring.episode ? nextAiring.airingAt : null;
+
       return {
         number,
         title: metadataEpisode?.title || streamingEpisode?.title || `Episode ${number}`,
         thumbnail: metadataEpisode?.thumbnail || streamingEpisode?.thumbnail || fallbackThumbnail,
         href: buildWatchPath(anime, number),
+        unreleased: isUnreleased,
+        airingAt: airingAt,
       };
     });
 }

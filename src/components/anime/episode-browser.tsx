@@ -13,7 +13,16 @@ export type EpisodeBrowserItem = {
   thumbnail: string;
   site?: string;
   href: string;
+  unreleased?: boolean;
+  airingAt?: number | null;
 };
+
+function formatShortAiringDate(timestamp: number) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(timestamp * 1000));
+}
 
 function filterEpisodes(episodes: EpisodeBrowserItem[], searchTerm: string) {
   const query = searchTerm.trim().toLowerCase();
@@ -115,11 +124,22 @@ export function EpisodeBrowser({ episodes }: { episodes: EpisodeBrowserItem[] })
               </div>
 
               <div className="space-y-1.5 p-4">
-                <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-white transition-colors group-hover:text-primary">
-                  {episode.title}
-                </h3>
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-white transition-colors group-hover:text-primary">
+                    {episode.title}
+                  </h3>
+                  {episode.unreleased && (
+                    <span className="shrink-0 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary">
+                      {episode.airingAt ? formatShortAiringDate(episode.airingAt) : "Soon"}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {episode.site ? `Source: ${episode.site}` : "TMDB preview"}
+                  {episode.unreleased 
+                    ? "Not yet aired" 
+                    : episode.site 
+                      ? `Source: ${episode.site}` 
+                      : "TMDB preview"}
                 </p>
               </div>
             </Link>

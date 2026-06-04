@@ -9,7 +9,16 @@ export type WatchEpisodeListItem = {
   title: string;
   thumbnail: string;
   href: string;
+  unreleased?: boolean;
+  airingAt?: number | null;
 };
+
+function formatShortAiringDate(timestamp: number) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(timestamp * 1000));
+}
 
 type EpisodeGroup = {
   start: number;
@@ -128,7 +137,13 @@ export function WatchEpisodeList({
                       isActive ? "text-black/60" : "text-white/45"
                     }`}
                   >
-                    {item.title}
+                    {item.unreleased ? (
+                      <span className="font-semibold text-primary">
+                        {item.airingAt ? `Airs ${formatShortAiringDate(item.airingAt)}` : "Coming Soon"}
+                      </span>
+                    ) : (
+                      item.title
+                    )}
                   </span>
                 </span>
               </Link>
