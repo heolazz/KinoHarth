@@ -22,8 +22,7 @@ export async function getAnimeMetadataBrowser(animeId: number) {
 
   return (await response.json()) as AnimeMetadataResponse;
 }
-
-export async function getAnimeMetadataServer(animeId: number, animeFormat?: string, animeTitleEnglish?: string, animeTitleRomaji?: string): Promise<AnimeMetadataResponse> {
+export async function getAnimeMetadataServer(animeId: number, animeFormat?: string | null, animeTitleEnglish?: string | null, animeTitleRomaji?: string | null): Promise<AnimeMetadataResponse> {
   const { getMiruroAnimeEpisodeMetadata } = await import("@/services/miruro");
   const { getTmdbSeasonThumbnails, getTmdbAnimeLogo, searchTmdb } = await import("@/services/tmdb");
 
