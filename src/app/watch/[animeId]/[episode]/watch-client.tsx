@@ -24,6 +24,7 @@ import type { Anime, AnimeStreamingEpisode } from "@/services/anilist";
 import type { AnimeMetadataResponse } from "@/services/anime-metadata";
 import { getAnimeMetadataBrowser } from "@/services/anime-metadata";
 import { getAnimeDetailBrowser } from "@/services/anilist-browser";
+import WatchLoading from "./loading";
 
 const DEFAULT_EPISODE_COUNT = 12;
 const EPISODE_GROUP_SIZE = 100;
@@ -365,11 +366,7 @@ export function WatchClient({
   }
 
   if (!anime || !model) {
-    return (
-      <div className="min-h-screen bg-[#111111] px-4 pt-28 text-white">
-        <AnimeLoading title="Loading watch page" />
-      </div>
-    );
+    return <WatchLoading />;
   }
 
   const streamSource =
