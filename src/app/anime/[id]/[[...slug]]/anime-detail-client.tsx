@@ -553,7 +553,7 @@ export function AnimeDetailClient({
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-6">
               {relationEdges
                 .filter((edge) => edge.node?.type === "ANIME")
-                .slice(0, 6)
+                .slice(0, 12)
                 .map((edge) => (
                   <AnimeCard key={edge.node.id} anime={edge.node} />
                 ))}
@@ -565,7 +565,7 @@ export function AnimeDetailClient({
           <div className="mt-16 space-y-6">
             <h2 className="text-2xl font-bold tracking-tight">Recommended</h2>
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-6">
-              {recommendationEdges.slice(0, 6).map((edge) => {
+              {recommendationEdges.slice(0, 12).map((edge) => {
                 const recAnime = edge.node.mediaRecommendation;
                 if (!recAnime) return null;
                 return <AnimeCard key={recAnime.id} anime={recAnime} />;

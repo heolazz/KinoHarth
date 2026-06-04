@@ -413,7 +413,7 @@ export function getAnimeDetailBrowser(id: number) {
             }
           }
         }
-        recommendations (perPage: 10, sort: RATING_DESC) {
+        recommendations (perPage: 12, sort: RATING_DESC) {
           edges {
             node {
               mediaRecommendation {
