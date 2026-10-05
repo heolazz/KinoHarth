@@ -149,10 +149,92 @@ export function StreamPlayer({
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<"category" | "provider" | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
-
+  // Mencegah iklan di dalam iframe me-redirect (teleport) tab KinoHarth ke web lain
   useEffect(() => {
-    setHasStarted(false);
-  }, [source.url]);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      return (e.returnValue = "");
+    };
+
+    // Saat iframe mencoba membuka tab iklan dan mencuri fokus, tarik fokus kembali ke KinoHarth
+    const handleBlur = () => {
+      setTimeout(() => {
+        window.focus();
+      }, 50);
+    };
+
+    // Matikan window.open di level aplikasi utama agar iframe tidak bisa memanggil window.top.open
+    const originalOpen = window.open;
+    window.open = () => {
+      console.warn("[KinoHarth Top Shield] Blocked top-level window.open popup attempt.");
+      return null;
+    };
+
+    const findVideoElement = (doc: Document): HTMLVideoElement | null => {
+      let video = doc.querySelector("video");
+      if (video) return video;
+      
+      const iframes = doc.querySelectorAll("iframe");
+      for (let i = 0; i < iframes.length; i++) {
+        try {
+          const childDoc = iframes[i].contentDocument;
+          if (childDoc) {
+            video = findVideoElement(childDoc);
+            if (video) return video;
+          }
+        } catch {
+          // Ignore cross-origin frames
+        }
+      }
+      return null;
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
+      const frame = document.querySelector("[data-stream-player-frame]") as HTMLElement;
+      const video = findVideoElement(document);
+
+      switch (e.key.toLowerCase()) {
+        case "f":
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+          } else if (frame) {
+            frame.requestFullscreen().catch(() => {});
+          }
+          break;
+        case " ":
+          if (video) {
+            e.preventDefault();
+            if (video.paused) video.play();
+            else video.pause();
+          }
+          break;
+        case "arrowleft":
+          if (video) video.currentTime = Math.max(0, video.currentTime - 5);
+          break;
+        case "arrowright":
+          if (video) video.currentTime = Math.min(video.duration, video.currentTime + 5);
+          break;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("keydown", handleKeyDown);
+    
+    return () => {
+      window.open = originalOpen;
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const current = buildCurrentOption(source);
   const streams = dedupeStreams([
@@ -299,10 +381,8 @@ export function StreamPlayer({
             key={selectedStream.url}
             src={selectedStream.url}
             title={title}
-            className="h-full w-full"
-            allow="autoplay; fullscreen; picture-in-picture"
-            referrerPolicy="origin"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+            className="h-full w-full border-0"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
             allowFullScreen
           />
         ) : (

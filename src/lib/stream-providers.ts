@@ -1253,38 +1253,76 @@ async function getMiruroStream(
 async function getMegaplayStream(
   animeId: number,
   episode: number,
+  streamServer?: string,
   context?: StreamContext
 ): Promise<StreamSource> {
-  const subUrl = `https://megaplay.buzz/stream/ani/${animeId}/${episode}/sub`;
-  const dubUrl = `https://megaplay.buzz/stream/ani/${animeId}/${episode}/dub`;
-  
+  const data = context?.title ? null : await getAnimeDetail(animeId);
+  const title = getContextTitle(context, data);
+  const poster = getContextPoster(context, data);
+
+  const vidnestSubAdFree = `/api/embed/vidnest/${animeId}/${episode}?subOrDub=sub`;
+  const vidnestDubAdFree = `/api/embed/vidnest/${animeId}/${episode}?subOrDub=dub`;
+  const vidnestSubDirect = `https://vidnest.fun/anime/${animeId}/${episode}/sub`;
+  const megaplaySub = `https://megaplay.buzz/stream/ani/${animeId}/${episode}/sub`;
+  const megaplayDub = `https://megaplay.buzz/stream/ani/${animeId}/${episode}/dub`;
+
+  const streams: StreamOption[] = [
+    {
+      url: vidnestSubDirect,
+      type: "embed",
+      server: "Vidnest (Direct)",
+    },
+    {
+      url: vidnestSubAdFree,
+      type: "embed",
+      server: "Vidnest (Sub - AdFree)",
+    },
+    {
+      url: vidnestDubAdFree,
+      type: "embed",
+      server: "Vidnest (Dub - AdFree)",
+    },
+    {
+      url: megaplaySub,
+      type: "embed",
+      server: "Megaplay (Sub)",
+    },
+    {
+      url: megaplayDub,
+      type: "embed",
+      server: "Megaplay (Dub)",
+    },
+  ];
+
+  const selected = streamServer
+    ? streams.find((s) => s.server.toLowerCase() === streamServer.toLowerCase()) || streams[0]
+    : streams[0];
+
   return {
     provider: "miruro", // masquerade as miruro so it fits into the same UI group
     type: "embed",
     animeId,
     episode,
-    title: context?.title || `Episode ${episode}`,
-    poster: context?.poster || null,
-    url: subUrl,
+    title,
+    poster,
+    url: selected.url,
     subtitles: [],
-    streams: [
+    streams,
+    providerOptions: [
       {
-        url: subUrl,
-        type: "embed",
-        server: "Megaplay (Sub)",
+        provider: "Vidnest",
+        category: "sub",
+        tags: ["EMBED"],
       },
       {
-        url: dubUrl,
-        type: "embed",
-        server: "Megaplay (Dub)",
+        provider: "Megaplay",
+        category: "sub",
+        tags: ["EMBED"],
       },
-      {
-        url: `https://vidnest.fun/anime/${animeId}/${episode}/stream`,
-        type: "embed",
-        server: "Vidnest (Backup)",
-      }
     ],
-    notice: "Video is embedded directly from Megaplay (Fallback source)."
+    selectedEpisodeProvider: selected.server.includes("Vidnest") ? "Vidnest" : "Megaplay",
+    selectedEpisodeCategory: selected.server.includes("Dub") ? "dub" : "sub",
+    notice: `Video embedded via ${selected.server}.`,
   };
 }
 
@@ -1312,6 +1350,10 @@ export async function getStreamSource(
       return getAnimepaheStream(animeId, episode);
     }
 
+    if (provider === "megaplay" || provider === "vidnest") {
+      return getMegaplayStream(animeId, episode, streamServer, context);
+    }
+
     if (provider === "miruro") {
       const miruroResult = await getMiruroStream(
         animeId,
@@ -1322,15 +1364,15 @@ export async function getStreamSource(
         context
       );
 
-      // Jika miruro gagal mendapatkan link video (kiwi mati), otomatis fallback ke megaplay iframe
+      // Jika miruro gagal mendapatkan link video (API error 500 / kiwi mati),
+      // otomatis fallback ke Megaplay & Vidnest embed
       if (!miruroResult.url || miruroResult.type === "dummy") {
         try {
-          const embedFallback = await getMegaplayStream(animeId, episode, context);
+          const embedFallback = await getMegaplayStream(animeId, episode, streamServer, context);
           if (embedFallback.url) {
             return embedFallback;
           }
         } catch (e) {
-          // Jika megaplay gagal, coba fallback ke animepahe
           try {
             const paheFallback = await getAnimepaheStream(animeId, episode);
             if (paheFallback.url && paheFallback.type !== "dummy") {
